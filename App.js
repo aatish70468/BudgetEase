@@ -7,14 +7,15 @@ import { auth } from './FirebaseConfig';
 import { signOut } from 'firebase/auth';
 import SignIn from './Screens/SignIn';
 import SignUp from './Screens/SignUp';
+import Home from './Screens/Home';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 export default function App() {
 
-  //when logout button pressed
-  const btnLogoutPressed = async ({ navigation }) => {
+  // Logout button pressed logic
+  const btnLogoutPressed = async (navigation) => {
     try {
       await signOut(auth);
       if (navigation.canGoBack()) {
@@ -23,32 +24,49 @@ export default function App() {
     } catch (err) {
       console.error('Failed to sign out:', err);
     }
-  }
+  };
 
-  const btnDisplayLogout = ({navigation}) => (
+  // Display Logout button in the header
+  const btnDisplayLogout = ({ navigation }) => (
     <Pressable style={styles.button} onPress={() => btnLogoutPressed(navigation)}>
       <Text style={styles.buttonText}>Logout</Text>
     </Pressable>
-  )
+  );
 
   const screenOptions = {
     headerTitleAlign: 'center',
     headerTitleStyle: {
       fontWeight: 'bold',
     },
-    headerRight: ({ navigation }) => (
-      <View style={{ flexDirection: 'row' }}>
-        {btnDisplayLogout({navigation})}
-      </View>
-    ),
-  }
+  };
 
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
-      <Stack.Navigator  screenOptions={screenOptions} initialRouteName='SignIn'>
-        <Stack.Screen name="SignIn" component={SignIn} options={{}} />
-        <Stack.Screen name="SignUp" component={SignUp} options={{}} />
+      <Stack.Navigator screenOptions={screenOptions} initialRouteName="SignIn">
+        <Stack.Screen 
+          name="SignIn" 
+          component={SignIn} 
+          options={{ headerTitle: 'BudgetEase' }} 
+        />
+        <Stack.Screen 
+          name="SignUp" 
+          component={SignUp} 
+          options={{ headerTitle: 'BudgetEase' }} 
+        />
+        <Stack.Screen 
+          name="Home" 
+          component={Home} 
+          options={({ navigation }) => ({
+            headerTitle: 'Home',
+            headerBackVisible: false,
+            headerRight: () => (
+              <View style={{ flexDirection: 'row', paddingRight: 10 }}>
+                {btnDisplayLogout({ navigation })}
+              </View>
+            ),
+          })} 
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -65,6 +83,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff0000',
     padding: 10,
     borderRadius: 5,
-    marginBottom: 10,
-  }
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
