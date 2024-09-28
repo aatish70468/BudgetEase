@@ -1,154 +1,236 @@
-import { React, useState, useEffect } from "react"
-import { KeyboardAvoidingView, SafeAreaView, StyleSheet, Text, TextInput, View, TouchableOpacity, Platform } from "react-native"
 import { auth } from './../FirebaseConfig'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { Ionicons } from '@expo/vector-icons'
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 
-const SignIn = ({ navigation }) => {
-
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState('');
+const SignInScreen = ({ navigation }) => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [emailError, setEmailError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
 
     //signIn button pressed
     const btnSignInPressed = async () => {
+
+        if (!email.includes('@')) {
+            setEmailError('Please enter a valid email.');
+        } else {
+            setEmailError('');
+        }
+
+        if (password.length < 6) {
+            setPasswordError('Password must be at least 6 characters.');
+        } else {
+            setPasswordError('');
+        }
+
         try {
-            if (!email || !password) {
-                alert('Please fill in all fields');
-                return;
-            } else {
+            if (emailError === '' && passwordError === '') {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 if (userCredential.user) {
-                    navigation.replace('Home');
+                    navigation.navigate('Home');
                 }
-                setError('');
             }
         } catch (err) {
-            setError(err.message);
+            console.error('Failed to sign in:', err);
+            alert('Invaild Credential')
         }
     }
 
     //button to navigate to signUp page for creating account
     const btnSignUpPressed = () => {
-        navigation.navigate('SignUp');
+        navigation.replace('SignUp');
     }
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={styles.container}>
-                <View style={styles.innerContainer}>
-                    <Text style={styles.title}>Sign In to Continue</Text>
+        <View style={styles.container}>
+            {/* Logo */}
+            <Image source={require('./../assets/icon.png')} style={styles.logo} />
 
-                    <View style={styles.inputContainer}>
-                        <Ionicons name="mail" size={24} color="#333" style={styles.icon} />
-                        <TextInput
-                            placeholder="Enter email"
-                            placeholderTextColor="#999"
-                            style={styles.input}
-                            textContentType="emailAddress"
-                            autoCapitalize="none"
-                            returnKeyType="next"
-                            onChangeText={text => setEmail(text)}
-                            value={email}
-                        />
-                    </View>
+            {/* Sign In Header */}
+            <Text style={styles.title}>Sign In</Text>
 
-                    <View style={styles.inputContainer}>
-                        <Ionicons name="lock-closed" size={24} color="#333" style={styles.icon} />
-                        <TextInput
-                            placeholder="Enter password"
-                            placeholderTextColor="#999"
-                            style={styles.input}
-                            textContentType="password"
-                            autoCapitalize="none"
-                            returnKeyType="done"
-                            secureTextEntry={true}
-                            onChangeText={text => setPassword(text)}
-                            value={password}
-                        />
-                    </View>
+            {/* Input Fields */}
+            <View style={[styles.inputContainer, emailError ? styles.inputError : null]}>
+                <Ionicons name="mail" size={20} color="#888" style={styles.icon} />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Email"
+                    placeholderTextColor="#888"
+                    keyboardType="email-address"
+                    value={email}
+                    onChangeText={setEmail}
+                />
+            </View>
+            {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
-                    {error && <Text style={styles.error}>{error}</Text>}
+            <View style={[styles.inputContainer, passwordError ? styles.inputError : null]}>
+                <Ionicons name="lock-closed" size={20} color="#888" style={styles.icon} />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    placeholderTextColor="#888"
+                    secureTextEntry={true}
+                    value={password}
+                    onChangeText={setPassword}
+                />
+            </View>
+            {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
-                    <Text onPress={btnSignUpPressed} style={styles.signUpText}>
-                        Don't have an account? Sign up here
-                    </Text>
+            {/* Sign In Button */}
+            <TouchableOpacity style={styles.button} onPress={btnSignInPressed}>
+                <Text style={styles.buttonText}>Sign In</Text>
+            </TouchableOpacity>
 
-                    <TouchableOpacity onPress={btnSignInPressed} style={styles.signInButton}>
-                        <Text style={styles.signInButtonText}>Sign In</Text>
-                    </TouchableOpacity>
+            {/* Forgot Password Link */}
+            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+                <Text style={styles.linkText}>Forgot Password?</Text>
+            </TouchableOpacity>
 
-                </View>
-            </KeyboardAvoidingView>
-        </SafeAreaView>
-    )
+            {/* Divider */}
+            <View style={styles.divider}>
+                <View style={styles.line}></View>
+                <Text style={styles.orText}>OR</Text>
+                <View style={styles.line}></View>
+            </View>
+
+            {/* Improved Social Media Login */}
+            <View style={styles.socialButtons}>
+                <TouchableOpacity style={[styles.socialButton, styles.googleButton]}>
+                    <Image source={require('./../assets/google.png')} style={styles.socialIcon} />
+                    <Text style={styles.socialText}>Continue with Google</Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* Sign Up Link */}
+            <TouchableOpacity onPress={() => btnSignUpPressed()}>
+                <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
+            </TouchableOpacity>
+        </View>
+    );
 };
 
-export default SignIn;
-
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-    },
     container: {
         flex: 1,
         justifyContent: 'center',
-        paddingHorizontal: 20,
-    },
-    innerContainer: {
-        backgroundColor: '#fff',
         padding: 20,
-        borderRadius: 10,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 5,
+        backgroundColor: '#121212', // Dark background color
+    },
+    logo: {
+        width: 100,
+        height: 100,
+        alignSelf: 'center',
+        marginBottom: 30,
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#fff', // Light text for dark background
         textAlign: 'center',
         marginBottom: 20,
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
-        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#444',
+        backgroundColor: '#1C1C1E',
+        padding: 15,
+        borderRadius: 12,
+        marginBottom: 10,
     },
     icon: {
         marginRight: 10,
+        color: '#fff'
     },
     input: {
         flex: 1,
         fontSize: 16,
-        paddingVertical: 10,
+        color: '#fff', // Light text color for inputs
     },
-    error: {
-        color: 'red',
-        textAlign: 'center',
+    inputError: {
+        borderColor: '#FF4D4F', // Red border for error
+    },
+    errorText: {
+        color: '#FF4D4F',
+        fontSize: 12,
         marginBottom: 10,
     },
-    signUpText: {
-        color: '#007BFF',
-        textAlign: 'center',
-        marginVertical: 15,
-    },
-    signInButton: {
-        backgroundColor: '#007BFF',
-        paddingVertical: 15,
-        borderRadius: 10,
+    button: {
+        backgroundColor: '#4285F4',
+        padding: 15,
+        borderRadius: 12,
         alignItems: 'center',
+        marginTop: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 5, // For Android shadow
     },
-    signInButtonText: {
+    buttonText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
     },
+    linkText: {
+        color: '#4285F4',
+        textAlign: 'center',
+        marginTop: 15,
+    },
+    divider: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 20,
+    },
+    line: {
+        flex: 1,
+        height: 1,
+        backgroundColor: '#333',
+    },
+    orText: {
+        color: '#888',
+        marginHorizontal: 10,
+        fontSize: 16,
+    },
+    socialButtons: {
+        marginBottom: 30,
+    },
+    socialButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 15,
+        borderRadius: 12,
+        marginBottom: 15,
+        shadowColor: '#000',
+        shadowOpacity: 0.7,
+        shadowRadius: 8,
+        shadowOffset: { width: 10, height: 4 },
+        elevation: 3,
+    },
+    googleButton: {
+        backgroundColor: '#fff',
+        borderColor: '#ddd',
+        borderWidth: 1,
+    },
+    socialIcon: {
+        width: 24,
+        height: 24,
+        marginRight: 10,
+    },
+    socialText: {
+        color: '#333',
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    signUpText: {
+        textAlign: 'center',
+        color: '#fff',
+        marginTop: 10,
+    },
 });
+
+export default SignInScreen;

@@ -1,5 +1,5 @@
-import { React, useState } from "react"
-import { KeyboardAvoidingView, SafeAreaView, StyleSheet, Text, TextInput, View, TouchableOpacity, Platform } from "react-native"
+import { React, useState, useEffect } from "react"
+import { KeyboardAvoidingView, SafeAreaView, StyleSheet, Text, TextInput, View, TouchableOpacity, Platform, Image } from "react-native"
 import { auth, db } from './../FirebaseConfig'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { collection, doc, setDoc } from 'firebase/firestore'
@@ -10,20 +10,58 @@ const SignUp = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [cnfPassword, setCnfPassword] = useState('');
-    const [error, setError] = useState('');
     const [name, setName] = useState('')
     const [phoneNumber, setPhoneNumber] = useState('');
+    const [emailError, setEmailError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+    const [cnfPasswordError, setCnfPasswordError] = useState('')
+    const [nameError, setNameError] = useState('');
+    const [phoneNumberError, setPhoneNumberError] = useState('');
+
+
+    useEffect(() => {
+        checkPasswordAndCnfPasswordSame();
+    }, [name, email, password, cnfPassword, phoneNumber])
+
+    const checkPasswordAndCnfPasswordSame = () => {
+        if (!email.includes('@')) {
+            setEmailError('Please enter a valid email address');
+        } else {
+            setEmailError('');
+        }
+
+        if (password.length < 6) {
+            setPasswordError('Password must be at least 6 characters long');
+        } else {
+            setPasswordError('');
+        }
+
+        if (!name.match(/^[a-zA-Z ]+$/)) {
+            setNameError('Name should only contain letters and spaces');
+        } else {
+            setNameError('');
+        }
+
+        if (!phoneNumber.match(/^\+1-\d{3}-\d{3}-\d{4}$/)) {
+            setPhoneNumberError('Please enter a valid phone number (+1-XXX-XXX-XXXX)');
+        } else {
+            setPhoneNumberError('');
+        }
+
+        if (password !== cnfPassword) {
+            setCnfPasswordError('Passwords do not match');
+        } else {
+            setCnfPasswordError('');
+        }
+    }
 
     //signUp button pressed
     const btnSignUpPressed = async () => {
+
+        checkPasswordAndCnfPasswordSame();
+
         try {
-            if (!email || !password || !name || !phoneNumber) {
-                alert('Please fill in all fields');
-                return;
-            } else if (password !== cnfPassword) {
-                alert('Passwords do not match');
-                return;
-            } else {
+            if (emailError === '' && passwordError === '' && cnfPasswordError === '' && nameError === '' && phoneNumberError === '') {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const userID = userCredential.user.uid;
                 const userCollectionRef = collection(db, 'users');
@@ -38,12 +76,10 @@ const SignUp = ({ navigation }) => {
 
                 await setDoc(userDocRef, addUserData)
                 console.log(`Signed up successfully with id: ${userID}`)
-                navigation.replace('Home');
-                setError('');
+                navigation.navigate('Home');
             }
         } catch (err) {
             console.error('Failed to sign up:', err);
-            setError(err.message);
         }
     }
 
@@ -53,164 +89,176 @@ const SignUp = ({ navigation }) => {
     )
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={styles.container}>
-                <View style={styles.innerContainer}>
-                    <Text style={styles.title}>Create an Account</Text>
+        <View style={styles.container}>
 
-                    <View style={styles.inputContainer}>
-                        <Ionicons name="person" size={24} color="#333" style={styles.icon} />
-                        <TextInput
-                            placeholder="Enter your name"
-                            placeholderTextColor="#999"
-                            style={styles.input}
-                            textContentType="familyName"
-                            autoCapitalize="none"
-                            returnKeyType="next"
-                            onChangeText={text => setName(text)}
-                            value={name}
-                        />
-                    </View>
+            {/* Logo */}
+            <Image source={require('./../assets/icon.png')} style={styles.logo} />
 
-                    <View style={styles.inputContainer}>
-                        <Ionicons name="mail" size={24} color="#333" style={styles.icon} />
-                        <TextInput
-                            placeholder="Enter email"
-                            placeholderTextColor="#999"
-                            style={styles.input}
-                            textContentType="emailAddress"
-                            autoCapitalize="none"
-                            returnKeyType="next"
-                            onChangeText={text => setEmail(text)}
-                            value={email}
-                        />
-                    </View>
+            {/* SignUp Header */}
+            <Text style={styles.title}>Create Account</Text>
 
-                    <View style={styles.inputContainer}>
-                        <Ionicons name="lock-closed" size={24} color="#333" style={styles.icon} />
-                        <TextInput
-                            placeholder="Enter password"
-                            placeholderTextColor="#999"
-                            style={styles.input}
-                            textContentType="password"
-                            autoCapitalize="none"
-                            returnKeyType="next"
-                            secureTextEntry={true}
-                            onChangeText={text => setPassword(text)}
-                            value={password}
-                        />
-                    </View>
+            {/* Input Fields*/}
 
-                    <View style={styles.inputContainer}>
-                        <Ionicons name="lock-closed" size={24} color="#333" style={styles.icon} />
-                        <TextInput
-                            placeholder="Confirm your password"
-                            placeholderTextColor="#999"
-                            style={styles.input}
-                            textContentType="password"
-                            autoCapitalize="none"
-                            returnKeyType="next"
-                            secureTextEntry={true}
-                            onChangeText={text => setCnfPassword(text)}
-                            value={cnfPassword}
-                        />
-                    </View>
+            <View style={[styles.inputContainer, nameError ? styles.inputError : null]}>
+                <Ionicons name="person" size={24} color="#333" style={styles.icon} />
+                <TextInput
+                    placeholder="Enter your name"
+                    placeholderTextColor="#999"
+                    style={styles.input}
+                    textContentType="familyName"
+                    autoCapitalize="none"
+                    returnKeyType="next"
+                    onChangeText={text => setName(text)}
+                    value={name}
+                />
+            </View>
+            {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
 
-                    <View style={styles.inputContainer}>
-                        <Ionicons name="call" size={24} color="#333" style={styles.icon} />
-                        <TextInput
-                            placeholder="Enter your phone number (+11234567890)"
-                            placeholderTextColor="#999"
-                            style={styles.input}
-                            textContentType="telephoneNumber"
-                            autoCapitalize="none"
-                            returnKeyType="next"
-                            onChangeText={text => setPhoneNumber(text)}
-                            value={phoneNumber}
-                        />
-                    </View>
+            <View style={[styles.inputContainer, emailError ? styles.inputError : null]}>
+                <Ionicons name="mail" size={24} color="#333" style={styles.icon} />
+                <TextInput
+                    placeholder="Enter email"
+                    placeholderTextColor="#999"
+                    style={styles.input}
+                    textContentType="emailAddress"
+                    autoCapitalize="none"
+                    returnKeyType="next"
+                    onChangeText={text => setEmail(text)}
+                    value={email}
+                />
+            </View>
+            {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
-                    {error && <Text style={styles.error}>{error}</Text>}
+            <View style={[styles.inputContainer, passwordError ? styles.inputError : null]}>
+                <Ionicons name="lock-closed" size={24} color="#333" style={styles.icon} />
+                <TextInput
+                    placeholder="Enter password"
+                    placeholderTextColor="#999"
+                    style={styles.input}
+                    textContentType="password"
+                    autoCapitalize="none"
+                    returnKeyType="next"
+                    secureTextEntry={true}
+                    onChangeText={text => setPassword(text)}
+                    value={password}
+                />
+            </View>
+            {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
-                    <Text onPress={btnAlreadyHaveAccount} style={styles.signInText}>
-                        Already have an account? Sign In here
-                    </Text>
+            <View style={[styles.inputContainer, cnfPasswordError ? styles.inputError : null]}>
+                <Ionicons name="lock-closed" size={24} color="#333" style={styles.icon} />
+                <TextInput
+                    placeholder="Confirm your password"
+                    placeholderTextColor="#999"
+                    style={styles.input}
+                    textContentType="password"
+                    autoCapitalize="none"
+                    returnKeyType="next"
+                    secureTextEntry={true}
+                    onChangeText={text => setCnfPassword(text)}
+                    value={cnfPassword}
+                />
+            </View>
+            {cnfPasswordError ? <Text style={styles.errorText}>{cnfPasswordError}</Text> : null}
 
-                    <TouchableOpacity onPress={btnSignUpPressed} style={styles.signUpButton}>
-                        <Text style={styles.signUpButtonText}>Sign Up</Text>
-                    </TouchableOpacity>
+            <View style={[styles.inputContainer, phoneNumberError ? styles.inputError : null]}>
+                <Ionicons name="call" size={24} color="#333" style={styles.icon} />
+                <TextInput
+                    placeholder="Enter your phone number (+1-123-456-7890)"
+                    placeholderTextColor="#999"
+                    style={styles.input}
+                    textContentType="telephoneNumber"
+                    autoCapitalize="none"
+                    returnKeyType="next"
+                    onChangeText={text => setPhoneNumber(text)}
+                    value={phoneNumber}
+                />
+            </View>
+            {phoneNumberError ? <Text style={styles.errorText}>{phoneNumberError}</Text> : null}
 
-                </View>
-            </KeyboardAvoidingView>
-        </SafeAreaView>
+            <TouchableOpacity onPress={btnSignUpPressed} style={styles.button}>
+                <Text style={styles.buttonText}>Sign Up</Text>
+            </TouchableOpacity>
+
+            {/* SignIn Link */}
+            <TouchableOpacity onPress={btnAlreadyHaveAccount}>
+                <Text style={styles.signInText}>Already have an account? Sign In</Text>
+            </TouchableOpacity>
+
+
+        </View>
     )
 };
 
 export default SignUp;
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-    },
     container: {
         flex: 1,
         justifyContent: 'center',
-        paddingHorizontal: 20,
-    },
-    innerContainer: {
-        backgroundColor: '#fff',
         padding: 20,
-        borderRadius: 10,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 5,
+        backgroundColor: '#121212', // Dark background color 
+    },
+    logo: {
+        width: 100,
+        height: 100,
+        marginBottom: 30,
+        alignSelf: 'center',
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#fff',
         textAlign: 'center',
         marginBottom: 20,
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
-        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#444',
+        backgroundColor: '#1C1C1E',
+        padding: 15,
+        borderRadius: 12,
+        marginBottom: 10,
     },
     icon: {
         marginRight: 10,
+        color: '#fff'
     },
     input: {
         flex: 1,
         fontSize: 16,
-        paddingVertical: 10,
+        color: '#fff'
     },
-    error: {
-        color: 'red',
-        textAlign: 'center',
+    inputError: {
+        borderColor: '#FF4D4F', // Red border for error
+    },
+    errorText: {
+        color: '#FF4D4F',
+        fontSize: 12,
         marginBottom: 10,
     },
-    signInText: {
-        color: '#007BFF',
-        textAlign: 'center',
-        marginVertical: 15,
-    },
-    signUpButton: {
-        backgroundColor: '#007BFF',
-        paddingVertical: 15,
-        borderRadius: 10,
+    button: {
+        backgroundColor: '#4285F4',
+        padding: 15,
+        borderRadius: 12,
         alignItems: 'center',
+        marginTop: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.8,
+        shadowRadius: 10,
+        elevation: 5,
     },
-    signUpButtonText: {
+    buttonText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
+    },
+    signInText: {
+        textAlign: 'center',
+        color: '#fff',
+        marginTop: 20,
     },
 });
