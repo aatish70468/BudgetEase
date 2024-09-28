@@ -1,8 +1,8 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer, StackActions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
-import { NavigationContainer, StackActions } from '@react-navigation/native';
 import { auth } from './FirebaseConfig';
 import { signOut } from 'firebase/auth';
 import SignIn from './Screens/SignIn';
@@ -15,7 +15,8 @@ const Stack = createNativeStackNavigator();
 export default function App() {
 
   // Logout button pressed logic
-  const btnLogoutPressed = async (navigation) => {
+  const btnLogoutPressed = async ({ navigation }) => {
+    console.log('asdasf')
     try {
       await signOut(auth);
       if (navigation.canGoBack()) {
@@ -28,7 +29,7 @@ export default function App() {
 
   // Display Logout button in the header
   const btnDisplayLogout = ({ navigation }) => (
-    <Pressable style={styles.button} onPress={() => btnLogoutPressed(navigation)}>
+    <Pressable style={styles.button} onPress={() => btnLogoutPressed({ navigation })}>
       <Text style={styles.buttonText}>Logout</Text>
     </Pressable>
   );
@@ -37,7 +38,12 @@ export default function App() {
     headerTitleAlign: 'center',
     headerTitleStyle: {
       fontWeight: 'bold',
+      color: '#fff', // White color for header text
+      fontSize: 20,
     },
+    headerStyle: {
+      backgroundColor: '#333', // Dark header color
+    }
   };
 
   return (
@@ -47,7 +53,9 @@ export default function App() {
         <Stack.Screen 
           name="SignIn" 
           component={SignIn} 
-          options={{ headerTitle: 'BudgetEase' }} 
+          options={{ 
+            headerTitle: 'BudgetEase',
+          }} 
         />
         <Stack.Screen 
           name="SignUp" 
@@ -58,13 +66,8 @@ export default function App() {
           name="Home" 
           component={Home} 
           options={({ navigation }) => ({
-            headerTitle: 'Home',
             headerBackVisible: false,
-            headerRight: () => (
-              <View style={{ flexDirection: 'row', paddingRight: 10 }}>
-                {btnDisplayLogout({ navigation })}
-              </View>
-            ),
+            headerRight: () => btnDisplayLogout({ navigation }),
           })} 
         />
       </Stack.Navigator>
@@ -75,7 +78,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#121212', // Dark backgroud color
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -83,6 +86,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff0000',
     padding: 10,
     borderRadius: 5,
+    marginRight: 15
   },
   buttonText: {
     color: '#fff',
