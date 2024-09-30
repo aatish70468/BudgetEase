@@ -8,6 +8,7 @@ import { signOut } from 'firebase/auth';
 import SignIn from './Screens/SignIn';
 import SignUp from './Screens/SignUp';
 import Home from './Screens/Home';
+import ForgotPassword from './Screens/ForgotPassword';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -43,7 +44,8 @@ export default function App() {
     },
     headerStyle: {
       backgroundColor: '#333', // Dark header color
-    }
+    },
+    headerTintColor: 'white'
   };
 
   return (
@@ -60,6 +62,11 @@ export default function App() {
         <Stack.Screen 
           name="SignUp" 
           component={SignUp} 
+          options={{ headerTitle: 'BudgetEase' }} 
+        />
+        <Stack.Screen 
+          name="ForgotPassword" 
+          component={ForgotPassword} 
           options={{ headerTitle: 'BudgetEase' }} 
         />
         <Stack.Screen 

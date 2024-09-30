@@ -43,6 +43,11 @@ const SignInScreen = ({ navigation }) => {
         navigation.replace('SignUp');
     }
 
+    //button to navigate to forgotPassword page
+    const btnForgotPasswordPressed = () => {
+        navigation.navigate('ForgotPassword');
+    }
+
     return (
         <View style={styles.container}>
             {/* Logo */}
@@ -84,7 +89,7 @@ const SignInScreen = ({ navigation }) => {
             </TouchableOpacity>
 
             {/* Forgot Password Link */}
-            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+            <TouchableOpacity onPress={() => btnForgotPasswordPressed()}>
                 <Text style={styles.linkText}>Forgot Password?</Text>
             </TouchableOpacity>
 
