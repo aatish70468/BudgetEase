@@ -3,11 +3,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { auth } from './FirebaseConfig';
 import { signOut } from 'firebase/auth';
 import SignIn from './Screens/SignIn';
 import SignUp from './Screens/SignUp';
 import Home from './Screens/Home';
+import Profile from './Screens/Profile';
 import ForgotPassword from './Screens/ForgotPassword';
 
 const Tab = createBottomTabNavigator();
@@ -33,6 +35,36 @@ export default function App() {
     <Pressable style={styles.button} onPress={() => btnLogoutPressed({ navigation })}>
       <Text style={styles.buttonText}>Logout</Text>
     </Pressable>
+  );
+
+  // Bottom tab navigation
+  const TabNavigator = () => (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+          if (route.name === 'Home') {
+            iconName = 'home';
+          } else if (route.name === 'Profile') {
+            iconName = 'user';
+          }
+          return <FontAwesome name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#f8b9b9', // Active tab color
+        tabBarInactiveTintColor: 'gray',
+      })}
+    >
+      <Tab.Screen 
+        name="Home" 
+        component={Home} 
+        options={{ headerShown: false }} // No header for Home in tabs
+      />
+      <Tab.Screen 
+        name="Profile" 
+        component={Profile} 
+        options={{ headerShown: false }} // No header for Profile in tabs
+      />
+    </Tab.Navigator>
   );
 
   const screenOptions = {
@@ -71,12 +103,20 @@ export default function App() {
         />
         <Stack.Screen 
           name="Home" 
-          component={Home} 
+          component={TabNavigator} // Show TabNavigator when logged in
           options={({ navigation }) => ({
             headerBackVisible: false,
             headerRight: () => btnDisplayLogout({ navigation }),
           })} 
         />
+        {/* <Stack.Screen 
+          name="Home" 
+          component={Home} 
+          options={({ navigation }) => ({
+            headerBackVisible: false,
+            headerRight: () => btnDisplayLogout({ navigation }),
+          })} 
+        /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );
