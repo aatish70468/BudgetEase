@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 
-export default function App() {
+export default function Summary() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
