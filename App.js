@@ -11,6 +11,7 @@ import SignUp from './Screens/SignUp';
 import Home from './Screens/Home';
 import Profile from './Screens/Profile';
 import ForgotPassword from './Screens/ForgotPassword';
+import Splash from './Screens/Splash';
 import AddHours from './Screens/AddHours';
 import AddPayRate from './Screens/AddPayRate';
 import Summary from './Screens/Summary';
@@ -86,7 +87,14 @@ export default function App() {
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
-      <Stack.Navigator screenOptions={screenOptions} initialRouteName="SignIn">
+      <Stack.Navigator screenOptions={screenOptions} initialRouteName="Splash">
+        <Stack.Screen
+          name="Splash"
+          component={Splash}
+          options={{
+            headerShown: false,
+          }}
+        />
         <Stack.Screen 
           name="SignIn" 
           component={SignIn} 

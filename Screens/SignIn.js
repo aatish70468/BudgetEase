@@ -51,7 +51,7 @@ const SignInScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             {/* Logo */}
-            <Image source={require('./../assets/icon.png')} style={styles.logo} />
+            <Image source={require('./../assets/logo.png')} style={styles.logo} />
 
             {/* Sign In Header */}
             <Text style={styles.title}>Sign In</Text>
