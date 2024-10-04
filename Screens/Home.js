@@ -9,7 +9,7 @@ const Home = ({ navigation }) => {
       <View style={styles.header}>
         <Text style={styles.title}>BudgetEase</Text>
         <Pressable onPress={() => console.log('Notification pressed')}>
-          <MaterialIcons name="notifications-none" size={28} color="black" />
+        <MaterialIcons name="notifications-none" size={28} color="#4A5568" />
         </Pressable>
       </View>
 
@@ -17,16 +17,23 @@ const Home = ({ navigation }) => {
       <View style={styles.topSection}>
         <Text style={styles.greeting}>Hi There</Text>
         <View style={styles.actionRow}>
-          <Pressable style={styles.actionItem} onPress={() => console.log('Add PayRate pressed')}>
-            <FontAwesome name="credit-card" size={24} color="black" />
-            <Text style={styles.actionText}>Add PayRate</Text>
-          </Pressable>
-          <Pressable style={styles.actionItem} onPress={() => console.log('Add Time pressed')}>
-            <Ionicons name="time-outline" size={24} color="black" />
-            <Text style={styles.actionText}>Add Time</Text>
-          </Pressable>
+        <Pressable 
+  style={styles.actionItem} 
+  onPress={() => navigation.navigate('AddPayRate')}>
+  <FontAwesome name="credit-card" size={24} color="#4299E1" />
+  <Text style={styles.actionText}>Add PayRate</Text>
+</Pressable>
+
+<Pressable 
+  style={styles.actionItem} 
+  onPress={() => navigation.navigate('AddHours')}
+>
+<Ionicons name="time-outline" size={24} color="#4299E1" />
+  <Text style={styles.actionText}>Add Hours</Text>
+</Pressable>
+
           <Pressable style={styles.actionItem} onPress={() => console.log('Set Budget pressed')}>
-            <Ionicons name="wallet-outline" size={24} color="black" />
+          <Ionicons name="wallet-outline" size={24} color="#4299E1" />
             <Text style={styles.actionText}>Set Budget</Text>
           </Pressable>
         </View>
@@ -47,8 +54,8 @@ const Home = ({ navigation }) => {
       <View style={styles.summarySection}>
         <Text style={styles.summaryText}>Get more detailed insights</Text>
         <Pressable onPress={() => navigation.navigate('Summary')}>
-          <Text style={styles.viewSummary}>View Summary</Text>
-        </Pressable>
+  <Text style={styles.viewSummary}>View Summary</Text>
+</Pressable>
       </View>
     </View>
   );
@@ -60,75 +67,109 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F0F4F8',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    paddingTop: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
+    color: '#1A365D',
   },
   topSection: {
-    backgroundColor: '#f8b9b9',
-    borderRadius: 10,
-    padding: 20,
+    backgroundColor: '#4299E1',
+    borderRadius: 16,
+    padding: 24,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   greeting: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 20,
+    color: '#FFFFFF',
+    marginBottom: 24,
   },
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   actionItem: {
     alignItems: 'center',
     flex: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   actionText: {
-    marginTop: 10,
+    marginTop: 12,
     fontSize: 14,
+    fontWeight: '600',
+    color: '#2D3748',
   },
   viewAll: {
-    color: '#007bff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
   earningsSection: {
-    marginBottom: 20,
+    marginBottom: 24,
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   earningsText: {
     fontSize: 18,
-    color: '#333',
+    color: '#4A5568',
+    marginBottom: 8,
   },
   earningsAmount: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: 'bold',
-    marginVertical: 5,
+    color: '#2D3748',
+    marginVertical: 8,
   },
   summarySection: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   summaryText: {
-    fontSize: 16,
-    marginBottom: 10,
+    fontSize: 18,
+    marginBottom: 16,
+    color: '#4A5568',
   },
   viewSummary: {
     fontSize: 18,
-    color: '#32cd32',
+    color: '#4299E1',
     fontWeight: 'bold',
   },
 });
