@@ -2,7 +2,7 @@ import { React, useState, useEffect } from "react"
 import { KeyboardAvoidingView, SafeAreaView, StyleSheet, Text, TextInput, View, TouchableOpacity, Platform, Image } from "react-native"
 import { auth, db } from './../FirebaseConfig'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { collection, doc, setDoc } from 'firebase/firestore'
+import { collection, doc, setDoc, query, where, getDocs } from 'firebase/firestore'
 import { Ionicons } from '@expo/vector-icons'
 
 const SignUp = ({ navigation }) => {
@@ -23,6 +23,10 @@ const SignUp = ({ navigation }) => {
         checkPasswordAndCnfPasswordSame();
     }, [name, email, password, cnfPassword, phoneNumber])
 
+    useEffect(() => {
+        checkAlreadyEmailInDatabase();
+    }, [email])
+
     const checkPasswordAndCnfPasswordSame = () => {
         if (!email.includes('@')) {
             setEmailError('Please enter a valid email address');
@@ -42,7 +46,7 @@ const SignUp = ({ navigation }) => {
             setNameError('');
         }
 
-        if (!phoneNumber.match(/^\+1-\d{3}-\d{3}-\d{4}$/)) {
+        if (!phoneNumber.match(/^\+1[- ]\d{3}[- ]\d{3}[- ]\d{4}$/)) {
             setPhoneNumberError('Please enter a valid phone number (+1-XXX-XXX-XXXX)');
         } else {
             setPhoneNumberError('');
@@ -55,6 +59,16 @@ const SignUp = ({ navigation }) => {
         }
     }
 
+    //check if the email is already signUp or not
+    const checkAlreadyEmailInDatabase = async () => {
+        const userCollectionRef = collection(db, 'users');
+        const userQuery = query(userCollectionRef, where('email', '==', email))
+        const getUser = await getDocs(userQuery);
+        if (getUser.docs.length > 0) {
+            setEmailError('Email is already registered');
+        }
+    }
+
     //signUp button pressed
     const btnSignUpPressed = async () => {
 
@@ -62,9 +76,11 @@ const SignUp = ({ navigation }) => {
 
         try {
             if (emailError === '' && passwordError === '' && cnfPasswordError === '' && nameError === '' && phoneNumberError === '') {
+
+                //create user
+                setEmailError('');
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const userID = userCredential.user.uid;
-                const userCollectionRef = collection(db, 'users');
                 const userDocRef = doc(userCollectionRef, email);
 
                 const addUserData = {
