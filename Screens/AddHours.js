@@ -1,31 +1,46 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, TextInput, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import firestore from 'firebase/firestore';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const AddHours = () => {
   const [date, setDate] = useState(new Date());
-  const [hours, setHours] = useState('');
-  const [minutes, setMinutes] = useState('');
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [clockIn, setClockIn] = useState(new Date());
+  const [clockOut, setClockOut] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showClockIn, setShowClockIn] = useState(false);
+  const [showClockOut, setShowClockOut] = useState(false);
 
-  const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setShowDatePicker(Platform.OS === 'ios');
-    setDate(currentDate);
+  const onDateChange = (selectedDate) => {
+    setDate(selectedDate);
+    setShowCalendar(false);
+  };
+
+  const onClockInChange = (event, selectedTime) => {
+    const currentTime = selectedTime || clockIn;
+    setShowClockIn(Platform.OS === 'ios');
+    setClockIn(currentTime);
+  };
+
+  const onClockOutChange = (event, selectedTime) => {
+    const currentTime = selectedTime || clockOut;
+    setShowClockOut(Platform.OS === 'ios');
+    setClockOut(currentTime);
   };
 
   const handleAddHours = async () => {
     try {
-      const totalHours = parseFloat(hours) + (parseFloat(minutes) / 60);
+      const totalHours = (clockOut - clockIn) / (1000 * 60 * 60); // Convert milliseconds to hours
       await firestore().collection('hours').add({
         date: date.toDateString(),
+        clockIn: clockIn.toLocaleTimeString(),
+        clockOut: clockOut.toLocaleTimeString(),
         hours: totalHours,
       });
       alert('Hours added successfully!');
-      setHours('');
-      setMinutes('');
+      setClockIn(new Date());
+      setClockOut(new Date());
     } catch (error) {
       console.error(error);
       alert('Failed to add hours.');
@@ -42,10 +57,7 @@ const AddHours = () => {
           </TouchableOpacity>
           {showCalendar && (
             <Calendar
-              onDayPress={(day) => {
-                setDate(new Date(day.timestamp));
-                setShowCalendar(false);
-              }}
+              onDayPress={(day) => onDateChange(new Date(day.timestamp))}
               markedDates={{
                 [date.toISOString().split('T')[0]]: {selected: true, marked: true}
               }}
@@ -53,24 +65,34 @@ const AddHours = () => {
           )}
         </View>
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Hours:</Text>
-          <TextInput
-            style={styles.input}
-            onChangeText={setHours}
-            value={hours}
-            keyboardType="numeric"
-            placeholder="Enter hours"
-          />
+          <Text style={styles.label}>Clock-In:</Text>
+          <TouchableOpacity style={styles.input} onPress={() => setShowClockIn(true)}>
+            <Text>{clockIn.toLocaleTimeString()}</Text>
+          </TouchableOpacity>
+          {showClockIn && (
+            <DateTimePicker
+              value={clockIn}
+              mode="time"
+              is24Hour={true}
+              display="default"
+              onChange={onClockInChange}
+            />
+          )}
         </View>
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Minutes:</Text>
-          <TextInput
-            style={styles.input}
-            onChangeText={setMinutes}
-            value={minutes}
-            keyboardType="numeric"
-            placeholder="Enter minutes"
-          />
+          <Text style={styles.label}>Clock-Out:</Text>
+          <TouchableOpacity style={styles.input} onPress={() => setShowClockOut(true)}>
+            <Text>{clockOut.toLocaleTimeString()}</Text>
+          </TouchableOpacity>
+          {showClockOut && (
+            <DateTimePicker
+              value={clockOut}
+              mode="time"
+              is24Hour={true}
+              display="default"
+              onChange={onClockOutChange}
+            />
+          )}
         </View>
         <TouchableOpacity style={styles.button} onPress={handleAddHours}>
           <Text style={styles.buttonText}>Add hours</Text>
@@ -79,7 +101,6 @@ const AddHours = () => {
     </ScrollView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
