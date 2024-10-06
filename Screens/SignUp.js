@@ -82,6 +82,7 @@ const SignUp = ({ navigation }) => {
                 setEmailError('');
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const userID = userCredential.user.uid;
+                const userCollectionRef = collection(db, 'users');
                 const userDocRef = doc(userCollectionRef, email);
 
                 const addUserData = {
