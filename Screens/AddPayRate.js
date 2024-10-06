@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
-import RNPickerSelect from 'react-native-picker-select';
+import { Picker } from '@react-native-picker/picker';
+import { auth, db } from './../FirebaseConfig';
+import { collection, setDoc, doc, getDocs, query, where, updateDoc } from 'firebase/firestore'
 
 export default function AddPayRate() {
   const [payType, setPayType] = useState('');
-  const [legalRate, setLegalRate] = useState('16.55');
-  const [cashRate, setCashRate] = useState('10.00');
+  const [legalRate, setLegalRate] = useState('');
+  const [cashRate, setCashRate] = useState('');
 
   const payTypeOptions = [
     { label: 'Hourly', value: 'hourly' },
@@ -15,52 +17,84 @@ export default function AddPayRate() {
     { label: 'Piece Rate', value: 'pieceRate' },
   ];
 
-  const handleAddPay = () => {
-    Alert.alert('Success', 'Pay rate added successfully!');
+  const handleAddPay = async () => {
+    if (!payType || !legalRate || !cashRate) {
+      alert('Please fill out all fields.');
+    } else {
+    
+      const collectionRef = collection(db, 'users');
+      const getUserDoc = query(collectionRef, where('id', '==', auth.currentUser.uid));
+      const userDoc = await getDocs(getUserDoc);
+
+      if (userDoc.docs.length === 0) {
+        alert('User not found.');
+        return;
+      } else {
+        const user = userDoc.docs[0].data();
+        console.log(`User: ${JSON.stringify(user)}`);
+
+        const addPayRateRef = doc(collectionRef, user.email)
+        await updateDoc(addPayRateRef, {
+          payType: payType,
+          legalRate: legalRate,
+          cashRate: cashRate,
+        });
+        alert('Pay Rate added successfully.');
+      }
+
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}
       >
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Add Pay Rate</Text>
-        </View>
         <View style={styles.form}>
+          {/* Pay Type Picker */}
           <View style={styles.inputContainer}>
-            <FontAwesome5 name="money-check-alt" size={20} color="#4B5563" style={styles.icon} />
-            <RNPickerSelect
-              onValueChange={(value) => setPayType(value)}
-              items={payTypeOptions}
-              style={pickerSelectStyles}
-              value={payType}
-              placeholder={{ label: "Select pay rate type", value: null }}
-            />
+            <FontAwesome5 name="money-check-alt" size={20} color="#4285F4" style={styles.icon} />
+            <Picker
+              selectedValue={payType}
+              onValueChange={(itemValue) => setPayType(itemValue)}
+              style={styles.picker}
+              dropdownIconColor="#4285F4"
+            >
+              <Picker.Item label="Select Pay Rate Type" value="" color="#BBBBBB" />
+              {payTypeOptions.map(option => (
+                <Picker.Item key={option.value} label={option.label} value={option.value} />
+              ))}
+            </Picker>
           </View>
+
+          {/* Legal Pay Rate Input */}
           <View style={styles.inputContainer}>
-            <MaterialCommunityIcons name="bank" size={24} color="#4B5563" style={styles.icon} />
-            <TextInput 
-              style={styles.input} 
+            <MaterialCommunityIcons name="bank" size={24} color="#4285F4" style={styles.icon} />
+            <TextInput
+              style={styles.input}
               placeholder="Legal Hours Pay-Rate"
+              placeholderTextColor="#BBBBBB"
               value={legalRate}
               onChangeText={setLegalRate}
               keyboardType="numeric"
             />
-            <Text style={styles.currency}>$</Text>
           </View>
+
+          {/* Cash Pay Rate Input */}
           <View style={styles.inputContainer}>
-            <FontAwesome5 name="hand-holding-usd" size={20} color="#4B5563" style={styles.icon} />
-            <TextInput 
-              style={styles.input} 
+            <FontAwesome5 name="hand-holding-usd" size={20} color="#4285F4" style={styles.icon} />
+            <TextInput
+              style={styles.input}
               placeholder="Cash Hours Pay-Rate"
+              placeholderTextColor="#BBBBBB"
               value={cashRate}
               onChangeText={setCashRate}
               keyboardType="numeric"
             />
-            <Text style={styles.currency}>$</Text>
           </View>
+
+          {/* Add Pay Button */}
           <TouchableOpacity style={styles.button} onPress={handleAddPay}>
             <Text style={styles.buttonText}>Add Pay Rate</Text>
           </TouchableOpacity>
@@ -73,31 +107,20 @@ export default function AddPayRate() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#121212', // Dark background
   },
   keyboardAvoidingView: {
     flex: 1,
   },
-  header: {
-    backgroundColor: '#3B82F6',
-    paddingVertical: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
   form: {
-    backgroundColor: 'white',
+    backgroundColor: '#1F1B24', // Slightly lighter dark color for form
     margin: 20,
     padding: 20,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
     elevation: 5,
   },
   inputContainer: {
@@ -105,9 +128,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#BBBBBB', // Lighter border
     borderRadius: 8,
     paddingHorizontal: 10,
+    backgroundColor: '#1F1B24',
   },
   icon: {
     marginRight: 10,
@@ -116,13 +140,14 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     fontSize: 16,
+    color: '#FFFFFF', // Light text color
   },
-  currency: {
-    fontSize: 16,
-    color: '#4B5563',
+  picker: {
+    flex: 1,
+    color: '#FFFFFF', // White text in picker
   },
   button: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#4285F4', // Accent color for button
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
@@ -132,22 +157,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 18,
-  },
-});
-
-const pickerSelectStyles = StyleSheet.create({
-  inputIOS: {
-    fontSize: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    color: 'black',
-    paddingRight: 30, // to ensure the text is never behind the icon
-  },
-  inputAndroid: {
-    fontSize: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    color: 'black',
-    paddingRight: 30, // to ensure the text is never behind the icon
   },
 });
