@@ -15,6 +15,7 @@ import Splash from './Screens/Splash';
 import AddHours from './Screens/AddHours';
 import AddPayRate from './Screens/AddPayRate';
 import Summary from './Screens/Summary';
+import SetBudget from './Screens/SetBudget';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -130,6 +131,11 @@ export default function App() {
           name="AddPayRate" 
           component={AddPayRate} 
           options={{ headerTitle: 'Add PayRate' }} 
+        />
+        <Stack.Screen 
+          name="SetBudget" 
+          component={SetBudget} 
+          options={{ headerTitle: 'Set Budget' }} 
         />
         <Stack.Screen 
           name="Summary" 
