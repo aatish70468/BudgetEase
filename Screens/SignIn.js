@@ -9,6 +9,7 @@ const SignInScreen = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [emailError, setEmailError] = useState('');
     const [passwordError, setPasswordError] = useState('');
+    const [passwordVisible, setPasswordVisible] = useState(false);
 
     //signIn button pressed
     const btnSignInPressed = async () => {
@@ -76,10 +77,11 @@ const SignInScreen = ({ navigation }) => {
                     style={styles.input}
                     placeholder="Password"
                     placeholderTextColor="#888"
-                    secureTextEntry={true}
+                    secureTextEntry={!passwordVisible}
                     value={password}
                     onChangeText={setPassword}
                 />
+                <Ionicons name={ passwordVisible ? 'eye' : 'eye-off' } size={20} color="#888" style={styles.icon} onPress={() => setPasswordVisible(!passwordVisible)} />
             </View>
             {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 

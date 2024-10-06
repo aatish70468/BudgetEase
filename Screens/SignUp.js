@@ -17,7 +17,8 @@ const SignUp = ({ navigation }) => {
     const [cnfPasswordError, setCnfPasswordError] = useState('')
     const [nameError, setNameError] = useState('');
     const [phoneNumberError, setPhoneNumberError] = useState('');
-
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [cnfpasswordVisible, setCnfPasswordVisible] = useState(false);
 
     useEffect(() => {
         checkPasswordAndCnfPasswordSame();
@@ -154,10 +155,11 @@ const SignUp = ({ navigation }) => {
                     textContentType="password"
                     autoCapitalize="none"
                     returnKeyType="next"
-                    secureTextEntry={true}
+                    secureTextEntry={!passwordVisible}
                     onChangeText={text => setPassword(text)}
                     value={password}
                 />
+                <Ionicons name={ passwordVisible ? 'eye' : 'eye-off' } size={20} color="#888" style={styles.icon} onPress={() => setPasswordVisible(!passwordVisible)} />
             </View>
             {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
@@ -170,10 +172,11 @@ const SignUp = ({ navigation }) => {
                     textContentType="password"
                     autoCapitalize="none"
                     returnKeyType="next"
-                    secureTextEntry={true}
+                    secureTextEntry={!cnfpasswordVisible}
                     onChangeText={text => setCnfPassword(text)}
                     value={cnfPassword}
                 />
+                <Ionicons name={ cnfpasswordVisible ? 'eye' : 'eye-off' } size={20} color="#888" style={styles.icon} onPress={() => setCnfPasswordVisible(!cnfpasswordVisible)} />
             </View>
             {cnfPasswordError ? <Text style={styles.errorText}>{cnfPasswordError}</Text> : null}
 
