@@ -1,175 +1,212 @@
 import React from 'react';
-import { StyleSheet, Text, View, Pressable } from 'react-native';
-import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { StyleSheet, Text, View, Pressable, ScrollView, Image } from 'react-native';
+import { FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 const Home = ({ navigation }) => {
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {/* Header Section */}
       <View style={styles.header}>
-        <Text style={styles.title}>BudgetEase</Text>
-        <Pressable onPress={() => console.log('Notification pressed')}>
-        <MaterialIcons name="notifications-none" size={28} color="#4A5568" />
-        </Pressable>
-      </View>
-
-      {/* Top Section */}
-      <View style={styles.topSection}>
-        <Text style={styles.greeting}>Hi There</Text>
-        <View style={styles.actionRow}>
-        <Pressable 
-  style={styles.actionItem} 
-  onPress={() => navigation.navigate('AddPayRate')}>
-  <FontAwesome name="credit-card" size={24} color="#4299E1" />
-  <Text style={styles.actionText}>Add PayRate</Text>
-</Pressable>
-
-<Pressable 
-  style={styles.actionItem} 
-  onPress={() => navigation.navigate('AddHours')}
->
-<Ionicons name="time-outline" size={24} color="#4299E1" />
-  <Text style={styles.actionText}>Add Hours</Text>
-</Pressable>
-
-          <Pressable style={styles.actionItem} onPress={() => console.log('Set Budget pressed')}>
-          <Ionicons name="wallet-outline" size={24} color="#4299E1" />
-            <Text style={styles.actionText}>Set Budget</Text>
+        <View>
+          <Text style={styles.title}>BudgetEase</Text>
+          <Text style={styles.subtitle}>Welcome back, User!</Text>
+        </View>
+        <View style={styles.headerIcons}>
+          <Pressable onPress={() => navigation.navigate('Notification')} style={styles.iconButton}>
+            <MaterialIcons name="notifications-none" size={28} color="#4A5568" />
+          </Pressable>
+          <Pressable onPress={() => navigation.navigate('Profile')} style={styles.profileButton}>
+            <Image
+              source={{ uri: 'https://example.com/profile-image.jpg' }}
+              style={styles.profileImage}
+            />
           </Pressable>
         </View>
-        <Pressable onPress={() => navigation.navigate('ViewAll')}>
-          <Text style={styles.viewAll}>View All</Text>
-        </Pressable>
       </View>
 
       {/* Earnings Section */}
       <View style={styles.earningsSection}>
-        <Text style={styles.earningsText}>Your earnings this week:</Text>
-        <Text style={styles.earningsAmount}>$330</Text>
-        <Text style={styles.earningsText}>Your earnings this month:</Text>
-        <Text style={styles.earningsAmount}>$1200</Text>
+        <Text style={styles.earningsTitle}>Your Earnings</Text>
+        <View style={styles.earningsRow}>
+          <View style={styles.earningsItem}>
+            <Text style={styles.earningsLabel}>This Week</Text>
+            <Text style={styles.earningsAmount}>$330</Text>
+          </View>
+          <View style={styles.earningsItem}>
+            <Text style={styles.earningsLabel}>This Month</Text>
+            <Text style={styles.earningsAmount}>$1200</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Quick Actions Section */}
+      <View style={styles.actionsSection}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.actionGrid}>
+          <Pressable style={styles.actionItem} onPress={() => navigation.navigate('AddPayRate')}>
+            <FontAwesome5 name="money-bill-wave" size={24} color="#4299E1" />
+            <Text style={styles.actionText}>Add PayRate</Text>
+          </Pressable>
+          <Pressable style={styles.actionItem} onPress={() => navigation.navigate('AddHours')}>
+            <Ionicons name="time-outline" size={24} color="#4299E1" />
+            <Text style={styles.actionText}>Add Hours</Text>
+          </Pressable>
+          <Pressable style={styles.actionItem} onPress={() => navigation.navigate('SetBudget')}>
+            <Ionicons name="wallet-outline" size={24} color="#4299E1" />
+            <Text style={styles.actionText}>Set Budget</Text>
+          </Pressable>
+          <Pressable style={styles.actionItem} onPress={() => navigation.navigate('ViewAll')}>
+            <FontAwesome5 name="list-ul" size={24} color="#4299E1" />
+            <Text style={styles.actionText}>View All</Text>
+          </Pressable>
+        </View>
       </View>
 
       {/* Summary Section */}
-      <View style={styles.summarySection}>
-        <Text style={styles.summaryText}>Get more detailed insights</Text>
-        <Pressable onPress={() => navigation.navigate('Summary')}>
-  <Text style={styles.viewSummary}>View Summary</Text>
-</Pressable>
-      </View>
-    </View>
+      <Pressable 
+        style={styles.summarySection} 
+        onPress={() => navigation.navigate('Summary')}
+      >
+        <View style={styles.summaryContent}>
+          <Text style={styles.summaryText}>Get more detailed insights</Text>
+          <Text style={styles.viewSummary}>View Summary</Text>
+        </View>
+        <FontAwesome5 name="chevron-right" size={20} color="#4299E1" />
+      </Pressable>
+    </ScrollView>
   );
 };
-
-export default Home;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#F0F4F8',
+    backgroundColor: '#F7FAFC',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
-    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+    backgroundColor: '#FFFFFF',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#1A365D',
-  },
-  topSection: {
-    backgroundColor: '#4299E1',
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  greeting: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 24,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 24,
-  },
-  actionItem: {
-    alignItems: 'center',
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  actionText: {
-    marginTop: 12,
-    fontSize: 14,
-    fontWeight: '600',
     color: '#2D3748',
   },
-  viewAll: {
-    color: '#FFFFFF',
+  subtitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    color: '#718096',
+    marginTop: 4,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    marginRight: 16,
+  },
+  profileButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
   },
   earningsSection: {
-    marginBottom: 24,
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: '#4299E1',
+    borderRadius: 20,
+    margin: 20,
+    padding: 20,
   },
-  earningsText: {
+  earningsTitle: {
     fontSize: 18,
-    color: '#4A5568',
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 16,
+  },
+  earningsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  earningsItem: {
+    alignItems: 'center',
+  },
+  earningsLabel: {
+    fontSize: 14,
+    color: '#E2E8F0',
     marginBottom: 8,
   },
   earningsAmount: {
-    fontSize: 32,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  actionsSection: {
+    margin: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#2D3748',
-    marginVertical: 8,
+    marginBottom: 16,
   },
-  summarySection: {
+  actionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  actionItem: {
+    width: '48%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 12,
+    padding: 16,
     alignItems: 'center',
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
+  },
+  actionText: {
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4A5568',
+  },
+  summarySection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    margin: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  summaryContent: {
+    flex: 1,
   },
   summaryText: {
-    fontSize: 18,
-    marginBottom: 16,
+    fontSize: 16,
     color: '#4A5568',
+    marginBottom: 4,
   },
   viewSummary: {
     fontSize: 18,
-    color: '#4299E1',
     fontWeight: 'bold',
+    color: '#4299E1',
   },
 });
+
+export default Home;
