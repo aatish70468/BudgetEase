@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { auth, db } from './../FirebaseConfig';
-import { collection, setDoc, doc, getDocs, query, where, updateDoc } from 'firebase/firestore'
+import { collection, setDoc, doc, getDocs, query, where, updateDoc, onSnapshot } from 'firebase/firestore'
 
 export default function AddPayRate() {
   const [payType, setPayType] = useState('');
@@ -17,11 +17,29 @@ export default function AddPayRate() {
     { label: 'Piece Rate', value: 'pieceRate' },
   ];
 
+  useEffect(() => {
+    getCurrUserPayRate();
+  }, [])
+
+  const getCurrUserPayRate = async () => {
+    const collectionRef = collection(db, 'users');
+    const getUserDoc = query(collectionRef, where('id', '==', auth.currentUser.uid));
+
+    onSnapshot(getUserDoc, (snapshot) => {
+
+      const user = snapshot.docs.map(doc => {
+        setCashRate(doc.data().cashRate)
+        setPayType(doc.data().payType);
+        setLegalRate(doc.data().legalRate);
+      })
+    })
+  }
+
   const handleAddPay = async () => {
     if (!payType || !legalRate || !cashRate) {
       alert('Please fill out all fields.');
     } else {
-    
+
       const collectionRef = collection(db, 'users');
       const getUserDoc = query(collectionRef, where('id', '==', auth.currentUser.uid));
       const userDoc = await getDocs(getUserDoc);
