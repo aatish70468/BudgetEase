@@ -15,6 +15,7 @@ import Splash from './Screens/Splash';
 import AddHours from './Screens/AddHours';
 import AddPayRate from './Screens/AddPayRate';
 import Summary from './Screens/Summary';
+import SetBudget from './Screens/SetBudget';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -23,7 +24,6 @@ export default function App() {
 
   // Logout button pressed logic
   const btnLogoutPressed = async ({ navigation }) => {
-    console.log('asdasf')
     try {
       await signOut(auth);
       if (navigation.canGoBack()) {
@@ -37,7 +37,7 @@ export default function App() {
   // Display Logout button in the header
   const btnDisplayLogout = ({ navigation }) => (
     <Pressable style={styles.button} onPress={() => btnLogoutPressed({ navigation })}>
-      <Text style={styles.buttonText}>Logout</Text>
+      <Text style={styles.buttonText}>Logout</Text> 
     </Pressable>
   );
 
@@ -45,17 +45,17 @@ export default function App() {
   const TabNavigator = () => (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ color, size }) => {
-          let iconName;
-          if (route.name === 'Home') {
-            iconName = 'home';
-          } else if (route.name === 'Profile') {
-            iconName = 'user';
-          }
-          return <FontAwesome name={iconName} size={size} color={color} />;
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName = route.name === 'Home' ? (focused ? 'home' : 'home-outline') : (focused ? 'person' : 'person-outline');
+          return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#f8b9b9', // Active tab color
-        tabBarInactiveTintColor: 'gray',
+        tabBarStyle: {
+          backgroundColor: '#1F1F1F', // Dark tab bar background
+          height: 50,
+          padding: 10
+        },
+        tabBarActiveTintColor: '#3182CE', // Active tab color
+        tabBarInactiveTintColor: '#3182CE',
       })}
     >
       <Tab.Screen 
@@ -75,18 +75,17 @@ export default function App() {
     headerTitleAlign: 'center',
     headerTitleStyle: {
       fontWeight: 'bold',
-      color: '#fff', // White color for header text
+      color: '#F5F5F5', // Light text color for header
       fontSize: 20,
     },
     headerStyle: {
-      backgroundColor: '#333', // Dark header color
+      backgroundColor: '#333', // Dark header background
     },
-    headerTintColor: 'white'
+    headerTintColor: '#F5F5F5' // Light tint color for icons
   };
 
   return (
     <NavigationContainer>
-      <StatusBar style="auto" />
       <Stack.Navigator screenOptions={screenOptions} initialRouteName="Splash">
         <Stack.Screen
           name="Splash"
@@ -132,18 +131,15 @@ export default function App() {
           options={{ headerTitle: 'Add PayRate' }} 
         />
         <Stack.Screen 
+          name="SetBudget" 
+          component={SetBudget} 
+          options={{ headerTitle: 'Set Budget' }} 
+        />
+        <Stack.Screen 
           name="Summary" 
           component={Summary} 
           options={{ headerTitle: 'Summary' }} 
         />
-        {/* <Stack.Screen 
-          name="Home" 
-          component={Home} 
-          options={({ navigation }) => ({
-            headerBackVisible: false,
-            headerRight: () => btnDisplayLogout({ navigation }),
-          })} 
-        /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -152,15 +148,15 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212', // Dark backgroud color
+    backgroundColor: '#121212', // Dark background color for app
     alignItems: 'center',
     justifyContent: 'center',
   },
   button: {
-    backgroundColor: '#ff0000',
+    backgroundColor: '#3182CE', // Bright color for logout button
     padding: 10,
     borderRadius: 5,
-    marginRight: 15
+    marginRight: 15,
   },
   buttonText: {
     color: '#fff',
