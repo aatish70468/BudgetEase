@@ -1,16 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import firestore from 'firebase/firestore';
+import { auth, db } from './../FirebaseConfig';
+import { collection, setDoc, doc, getDocs, query, where, updateDoc, onSnapshot } from 'firebase/firestore'
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const AddHours = () => {
+  const [email, setEmail] = useState('');
   const [date, setDate] = useState(new Date());
   const [clockIn, setClockIn] = useState(new Date());
   const [clockOut, setClockOut] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [showClockIn, setShowClockIn] = useState(false);
   const [showClockOut, setShowClockOut] = useState(false);
+
+  useEffect(() => {
+    getCurrUser();
+  }, [])
+
+  const formatDate = (date) => {
+    const day = String(date.getDate()).padStart(2, '0'); // Get the day
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Get the month
+    const year = date.getFullYear(); // Get the full year
+
+    return `${day}${month}${year}`; // Format as ddmmyyyy
+  };
+
+  const getCurrUser= async () => {
+    const collectionRef = collection(db, 'users');
+    const getUserDoc = query(collectionRef, where('id', '==', auth.currentUser.uid));
+
+    onSnapshot(getUserDoc, (snapshot) => {
+      const user = snapshot.docs.map(doc => {
+        console.log(doc.data())
+        setEmail(doc.data().email)
+      })
+    })
+
+    
+  }
 
   const onDateChange = (selectedDate) => {
     setDate(selectedDate);
@@ -31,13 +59,23 @@ const AddHours = () => {
 
   const handleAddHours = async () => {
     try {
+      console.log(`Mail: ${email}`)
+
+      console.log(`Time IN: ${clockIn.getHours()} and Time OUT: ${clockOut.getHours()}`);
       const totalHours = (clockOut - clockIn) / (1000 * 60 * 60); // Convert milliseconds to hours
-      await firestore().collection('hours').add({
-        date: date.toDateString(),
-        clockIn: clockIn.toLocaleTimeString(),
-        clockOut: clockOut.toLocaleTimeString(),
-        hours: totalHours,
-      });
+      console.log(`TOtal Time: ${totalHours}`);
+
+      const hoursToInsert = {
+        totalHours: totalHours,
+        date: date
+      }
+
+      const userRef = doc(db, 'users', auth.currentUser.email);
+      const collectionRef = collection(userRef, `${date.toLocaleString('default', { month: 'long' })}`)
+
+      //insert the document using the collection reference
+      const docRef = await setDoc(doc(collectionRef, formatDate(date)), hoursToInsert)
+      
       alert('Hours added successfully!');
       setClockIn(new Date());
       setClockOut(new Date());
