@@ -1,8 +1,59 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, Pressable, ScrollView, Image } from 'react-native';
 import { FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { auth, db, storage } from './../FirebaseConfig';
+import { collection, addDoc, doc, onSnapshot, query, where, updateDoc, getDocs } from 'firebase/firestore';
 
 const Home = ({ navigation }) => {
+
+  const [weeklyIncome, setWeeklyIncome] = useState(0);
+  const [monthlyIncome, setMonthlyIncome] = useState(0);
+  const [userPayrate, setUserPayrate] = useState(0);
+  const [userTotalHours, setUserTotalHours] = useState(0);
+
+  // Fetch Firestore Data
+  useEffect(() => {
+    getUserPayrate();
+    getUserHours();
+  }, []); // This useEffect runs once on component mount
+
+  // Fetch payrate from Firestore
+  const getUserPayrate = async () => {
+    const collectionRef = collection(db, 'users');
+    const getUserDoc = query(collectionRef, where('id', '==', auth.currentUser.uid));
+
+    onSnapshot(getUserDoc, (snapshot) => {
+      const user = snapshot.docs.map(doc => {
+        setUserPayrate(doc.data().legalRate);
+      });
+    });
+  };
+
+  // Fetch total hours worked for the current month
+  const getUserHours = async () => {
+    const month = new Date().toLocaleString('default', { month: 'long' });
+    const collectionRef = collection(db, 'users', auth.currentUser.email, month);
+    let getHours = 0;
+    
+    onSnapshot(collectionRef, (snapshot) => {
+      snapshot.docs.forEach(doc => {
+        getHours += doc.data().totalHours;
+      });
+      setUserTotalHours(getHours);
+    });
+  };
+
+  // Calculate income after payrate and hours are fetched
+  useEffect(() => {
+    if (userPayrate > 0 && userTotalHours > 0) {
+      const weeklyIncomeCalculated = userTotalHours * userPayrate; 
+      const monthlyIncomeCalculated = userTotalHours * userPayrate;
+      
+      setWeeklyIncome(weeklyIncomeCalculated);
+      setMonthlyIncome(monthlyIncomeCalculated);
+    }
+  }, [userPayrate, userTotalHours]);
+
   return (
     <ScrollView style={styles.container}>
       {/* Header Section */}
@@ -13,7 +64,7 @@ const Home = ({ navigation }) => {
         </View>
         <View style={styles.headerIcons}>
           <Pressable onPress={() => navigation.navigate('Notification')} style={styles.iconButton}>
-            <MaterialIcons name="notifications-none" size={28} color="#4A5568" />
+            <MaterialIcons name="notifications-none" size={28} color="#E2E8F0" />
           </Pressable>
           <Pressable onPress={() => navigation.navigate('Profile')} style={styles.profileButton}>
             <Image
@@ -30,11 +81,11 @@ const Home = ({ navigation }) => {
         <View style={styles.earningsRow}>
           <View style={styles.earningsItem}>
             <Text style={styles.earningsLabel}>This Week</Text>
-            <Text style={styles.earningsAmount}>$330</Text>
+            <Text style={styles.earningsAmount}>${weeklyIncome.toFixed(2)}</Text>
           </View>
           <View style={styles.earningsItem}>
             <Text style={styles.earningsLabel}>This Month</Text>
-            <Text style={styles.earningsAmount}>$1200</Text>
+            <Text style={styles.earningsAmount}>${monthlyIncome.toFixed(2)}</Text>
           </View>
         </View>
       </View>
@@ -44,19 +95,24 @@ const Home = ({ navigation }) => {
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionGrid}>
           <Pressable style={styles.actionItem} onPress={() => navigation.navigate('AddPayRate')}>
-            <FontAwesome5 name="money-bill-wave" size={24} color="#4299E1" />
+            {/* <FontAwesome5 name="money-bill-wave" size={24} color="#63B3ED" /> */}
+            <Ionicons name="cash-outline" size={24} color="#63B3ED" />
             <Text style={styles.actionText}>Add PayRate</Text>
           </Pressable>
           <Pressable style={styles.actionItem} onPress={() => navigation.navigate('AddHours')}>
-            <Ionicons name="time-outline" size={24} color="#4299E1" />
+            <Ionicons name="time-outline" size={24} color="#63B3ED" />
             <Text style={styles.actionText}>Add Hours</Text>
           </Pressable>
           <Pressable style={styles.actionItem} onPress={() => navigation.navigate('SetBudget')}>
-            <Ionicons name="wallet-outline" size={24} color="#4299E1" />
+            <Ionicons name="wallet-outline" size={24} color="#63B3ED" />
             <Text style={styles.actionText}>Set Budget</Text>
           </Pressable>
+          {/* <Pressable style={styles.actionItem} onPress={() => navigation.navigate('SetBudget')}>
+            <Ionicons name="notifications-outline" size={24} color="#63B3ED" />
+            <Text style={styles.actionText}>Notification</Text>
+          </Pressable> */}
           <Pressable style={styles.actionItem} onPress={() => navigation.navigate('ViewAll')}>
-            <FontAwesome5 name="list-ul" size={24} color="#4299E1" />
+            <FontAwesome5 name="list-ul" size={24} color="#63B3ED" />
             <Text style={styles.actionText}>View All</Text>
           </Pressable>
         </View>
@@ -71,7 +127,7 @@ const Home = ({ navigation }) => {
           <Text style={styles.summaryText}>Get more detailed insights</Text>
           <Text style={styles.viewSummary}>View Summary</Text>
         </View>
-        <FontAwesome5 name="chevron-right" size={20} color="#4299E1" />
+        <FontAwesome5 name="chevron-right" size={20} color="#63B3ED" />
       </Pressable>
     </ScrollView>
   );
@@ -80,7 +136,7 @@ const Home = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7FAFC',
+    backgroundColor: '#121212', // Dark background for the app
   },
   header: {
     flexDirection: 'row',
@@ -89,16 +145,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#2D3748', // Darker header background
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2D3748',
+    color: '#F7FAFC', // Light title for dark theme
   },
   subtitle: {
     fontSize: 16,
-    color: '#718096',
+    color: '#A0AEC0', // Lighter subtitle
     marginTop: 4,
   },
   headerIcons: {
@@ -119,10 +175,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   earningsSection: {
-    backgroundColor: '#4299E1',
+    backgroundColor: '#3182CE', // Strong contrast for earnings section
     borderRadius: 20,
     margin: 20,
     padding: 20,
+    marginTop: 60
   },
   earningsTitle: {
     fontSize: 18,
@@ -153,7 +210,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2D3748',
+    color: '#F7FAFC', // Light text for section titles
     marginBottom: 16,
   },
   actionGrid: {
@@ -163,7 +220,7 @@ const styles = StyleSheet.create({
   },
   actionItem: {
     width: '48%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#2D3748', // Dark background for action items
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -178,13 +235,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 14,
     fontWeight: '600',
-    color: '#4A5568',
+    color: '#E2E8F0', // Light text for action items
   },
   summarySection: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#2D3748',
     borderRadius: 12,
     margin: 20,
     padding: 20,
@@ -199,13 +256,13 @@ const styles = StyleSheet.create({
   },
   summaryText: {
     fontSize: 16,
-    color: '#4A5568',
+    color: '#E2E8F0',
     marginBottom: 4,
   },
   viewSummary: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#4299E1',
+    color: '#63B3ED', // Light blue for call-to-action
   },
 });
 
