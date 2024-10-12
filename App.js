@@ -16,6 +16,7 @@ import AddHours from './Screens/AddHours';
 import AddPayRate from './Screens/AddPayRate';
 import Summary from './Screens/Summary';
 import SetBudget from './Screens/SetBudget';
+import AddTodaysTiming from './Screens/AddTodaysTiming';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -134,6 +135,11 @@ export default function App() {
           name="SetBudget" 
           component={SetBudget} 
           options={{ headerTitle: 'Set Budget' }} 
+        />
+        <Stack.Screen 
+          name="AddTodaysTiming" 
+          component={AddTodaysTiming} 
+          options={{ headerTitle: "Add Today's Timing" }} 
         />
         <Stack.Screen 
           name="Summary" 
