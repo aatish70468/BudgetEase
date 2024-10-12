@@ -1,169 +1,127 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, ScrollView } from 'react-native';
-import { Calendar } from 'react-native-calendars';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import { auth, db } from './../FirebaseConfig';
 import { collection, setDoc, doc, getDocs, query, where, updateDoc, onSnapshot } from 'firebase/firestore'
-import DateTimePicker from '@react-native-community/datetimepicker';
 
-const AddHours = () => {
-  const [email, setEmail] = useState('');
-  const [date, setDate] = useState(new Date());
-  const [clockIn, setClockIn] = useState(new Date());
-  const [clockOut, setClockOut] = useState(new Date());
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [showClockIn, setShowClockIn] = useState(false);
-  const [showClockOut, setShowClockOut] = useState(false);
+export default function AddHours() {
+
+  const [legalHours, setLegalHours] = useState('');
+  // const [cashRate, setCashRate] = useState('');
 
   useEffect(() => {
-    getCurrUser();
+    getCurrUserLegalHours();
   }, [])
 
-  const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, '0'); // Get the day
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Get the month
-    const year = date.getFullYear(); // Get the full year
-
-    return `${day}${month}${year}`; // Format as ddmmyyyy
-  };
-
-  const getCurrUser= async () => {
+  const getCurrUserLegalHours = async () => {
     const collectionRef = collection(db, 'users');
     const getUserDoc = query(collectionRef, where('id', '==', auth.currentUser.uid));
 
     onSnapshot(getUserDoc, (snapshot) => {
+
       const user = snapshot.docs.map(doc => {
-        console.log(doc.data())
-        setEmail(doc.data().email)
+        setLegalHours(doc.data().legalHours);
       })
     })
   }
 
-  const onDateChange = (selectedDate) => {
-    console.log(`${selectedDate.toISOString()}`)
-    setDate(selectedDate);
-    setShowCalendar(false);
-  };
+  const handleAddPay = async () => {
+    if (!legalHours) {
+      alert('Please fill out all fields.');
+    } else {
 
-  const onClockInChange = (event, selectedTime) => {
-    const currentTime = selectedTime || clockIn;
-    setShowClockIn(Platform.OS === 'ios');
-    setClockIn(currentTime);
-  };
+      const collectionRef = collection(db, 'users');
+      const getUserDoc = query(collectionRef, where('id', '==', auth.currentUser.uid));
+      const userDoc = await getDocs(getUserDoc);
 
-  const onClockOutChange = (event, selectedTime) => {
-    const currentTime = selectedTime || clockOut;
-    setShowClockOut(Platform.OS === 'ios');
-    setClockOut(currentTime);
-  };
+      if (userDoc.docs.length === 0) {
+        alert('User not found.');
+        return;
+      } else {
+        const user = userDoc.docs[0].data();
+        console.log(`User: ${JSON.stringify(user)}`);
 
-  const handleAddHours = async () => {
-    try {
-      console.log(`Mail: ${email}`)
-
-      console.log(`Time IN: ${clockIn.getHours()} and Time OUT: ${clockOut.getHours()}`);
-      const totalHours = (clockOut - clockIn) / (1000 * 60 * 60); // Convert milliseconds to hours
-      console.log(`TOtal Time: ${totalHours}`);
-
-      const hoursToInsert = {
-        totalHours: totalHours,
-        date: new Date(date.toISOString())
+        const addLegalHoursRef = doc(collectionRef, user.email)
+        await updateDoc(addLegalHoursRef, {
+          legalHours: legalHours,
+        });
+        alert('Legal Hours added successfully.');
       }
 
-      const userRef = doc(db, 'users', auth.currentUser.email);
-      const collectionRef = collection(userRef, `${date.toLocaleString('default', { month: 'long' })}`)
-
-      //insert the document using the collection reference
-      const docRef = await setDoc(doc(collectionRef, formatDate(new Date(date.toISOString()))), hoursToInsert)
-      
-      alert('Hours added successfully!');
-      setClockIn(new Date());
-      setClockOut(new Date());
-    } catch (error) {
-      console.error(error);
-      alert('Failed to add hours.');
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.form}>
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Select Date:</Text>
-          <TouchableOpacity style={styles.input} onPress={() => setShowCalendar(true)}>
-            <Text style={styles.text}>{date.toISOString().split('T')[0]}</Text>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
+      >
+        <View style={styles.form}>
+
+          {/* Legal Hours Input */}
+          <View style={styles.outerInputContainer}>
+            <Text style={styles.label}>Legal Hours:</Text>
+            <View style={styles.inputContainer}>
+              <MaterialCommunityIcons name="bank" size={24} color="#4285F4" style={styles.icon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter legal hours you can do..."
+                placeholderTextColor="#BBBBBB"
+                value={legalHours}
+                onChangeText={setLegalHours}
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
+
+          {/* Cash Pay Rate Input */}
+          {/* <View style={styles.outerInputContainer}>
+            <Text style={styles.label}>Cash Hours:</Text>
+            <View style={styles.inputContainer}>
+              <FontAwesome5 name="hand-holding-usd" size={20} color="#4285F4" style={styles.icon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter Cash Hours you can do..."
+                placeholderTextColor="#BBBBBB"
+                value={cashRate}
+                onChangeText={setCashRate}
+                keyboardType="numeric"
+              />
+            </View>
+          </View> */}
+
+          {/* Add Pay Button */}
+          <TouchableOpacity style={styles.button} onPress={handleAddPay}>
+            <Text style={styles.buttonText}>Add Hours</Text>
           </TouchableOpacity>
-          {showCalendar && (
-            <Calendar
-              onDayPress={(day) => {
-                const selectedDate = new Date(Date.UTC(
-                  parseInt(day.year),
-                  parseInt(day.month) - 1, // month is 0-indexed in Date.UTC
-                  parseInt(day.day)
-                ));
-                onDateChange(selectedDate);
-              }}
-              markedDates={{
-                [date.toISOString().split('T')[0]]: { selected: true, marked: true }
-              }}
-            />
-          )}
         </View>
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Clock-In:</Text>
-          <TouchableOpacity style={styles.input} onPress={() => setShowClockIn(true)}>
-            <Text style={styles.text}>{clockIn.toLocaleTimeString()}</Text>
-          </TouchableOpacity>
-          {showClockIn && (
-            <DateTimePicker
-              value={clockIn}
-              mode="time"
-              is24Hour={true}
-              display="default"
-              onChange={onClockInChange}
-            />
-          )}
-        </View>
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Clock-Out:</Text>
-          <TouchableOpacity style={styles.input} onPress={() => setShowClockOut(true)}>
-            <Text style={styles.text}>{clockOut.toLocaleTimeString()}</Text>
-          </TouchableOpacity>
-          {showClockOut && (
-            <DateTimePicker
-              value={clockOut}
-              mode="time"
-              is24Hour={true}
-              display="default"
-              onChange={onClockOutChange}
-            />
-          )}
-        </View>
-        <TouchableOpacity style={styles.button} onPress={handleAddHours}>
-          <Text style={styles.buttonText}>Add hours</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
-};
+}
+
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    backgroundColor: '#121212', //Dark background
-    alignItems: 'center',
-    padding: 20,
+    flex: 1,
+    backgroundColor: '#121212', // Dark background
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   form: {
-    backgroundColor: '#1F1B24', //Slightly lighter dark color for form
-    width: '100%',
+    backgroundColor: '#1F1B24', // Slightly lighter dark color for form
+    margin: 20,
     padding: 20,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  inputContainer: {
+  outerInputContainer: {
     marginBottom: 20,
   },
   label: {
@@ -172,31 +130,35 @@ const styles = StyleSheet.create({
     color: '#FFFFFF', //Light label text color
     marginBottom: 8,
   },
-  input: {
-    backgroundColor: '#2C2C34', //Slightly lighter dark background for input
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#BBBBBB', //Lighter border
+    borderColor: '#BBBBBB', // Lighter border
     borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: '#1F2937',
+    paddingHorizontal: 10,
+    backgroundColor: '#1F1B24',
   },
-  text: {
+  icon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 12,
     fontSize: 16,
-    color: '#FFFFFF' //White text color
+    color: '#FFFFFF', // Light text color
   },
   button: {
-    backgroundColor: '#4F46E5', //Accent color for button
-    padding: 16,
+    backgroundColor: '#4285F4', // Accent color for button
+    paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 10,
   },
   buttonText: {
-    color: '#FFFFFF', //White button text
-    fontSize: 18,
+    color: 'white',
     fontWeight: 'bold',
+    fontSize: 18,
   },
 });
-
-export default AddHours;
