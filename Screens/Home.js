@@ -56,24 +56,6 @@ const Home = ({ navigation }) => {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header Section */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>BudgetEase</Text>
-          <Text style={styles.subtitle}>Welcome back, User!</Text>
-        </View>
-        <View style={styles.headerIcons}>
-          <Pressable onPress={() => navigation.navigate('Notification')} style={styles.iconButton}>
-            <MaterialIcons name="notifications-none" size={28} color="#E2E8F0" />
-          </Pressable>
-          <Pressable onPress={() => navigation.navigate('Profile')} style={styles.profileButton}>
-            <Image
-              source={{ uri: 'https://example.com/profile-image.jpg' }}
-              style={styles.profileImage}
-            />
-          </Pressable>
-        </View>
-      </View>
 
       {/* Earnings Section */}
       <View style={styles.earningsSection}>
@@ -88,6 +70,14 @@ const Home = ({ navigation }) => {
             <Text style={styles.earningsAmount}>${monthlyIncome.toFixed(2)}</Text>
           </View>
         </View>
+      </View>
+
+      {/* Add Today's Timing Section */}
+      <View style={styles.timingSection}>
+        <Text style={styles.timingTitle}>Add Today's Timing</Text>
+        <Pressable style={styles.timingButton} onPress={() => navigation.navigate('AddTodaysTiming')}>
+          <Text style={styles.timingButtonText}>Add Today's Timing</Text>
+        </Pressable>
       </View>
 
       {/* Quick Actions Section */}
@@ -119,16 +109,45 @@ const Home = ({ navigation }) => {
       </View>
 
       {/* Summary Section */}
-      <Pressable 
-        style={styles.summarySection} 
-        onPress={() => navigation.navigate('Summary')}
-      >
-        <View style={styles.summaryContent}>
-          <Text style={styles.summaryText}>Get more detailed insights</Text>
-          <Text style={styles.viewSummary}>View Summary</Text>
-        </View>
-        <FontAwesome5 name="chevron-right" size={20} color="#63B3ED" />
-      </Pressable>
+      <View style={styles.summaryViewSection}>
+        <Text style={styles.summaarySectionTitle}>View Summary</Text>
+        <Pressable
+          style={styles.summarySection}
+          onPress={() => navigation.navigate('Summary')}
+        >
+          <View style={styles.summaryContent}>
+            <Text style={styles.summaryText}>Get details by daily</Text>
+          </View>
+          <FontAwesome5 name="chevron-right" size={20} color="#63B3ED" />
+        </Pressable>
+        <Pressable
+          style={styles.summarySection}
+          onPress={() => navigation.navigate('Summary')}
+        >
+          <View style={styles.summaryContent}>
+            <Text style={styles.summaryText}>Get details by weekly</Text>
+          </View>
+          <FontAwesome5 name="chevron-right" size={20} color="#63B3ED" />
+        </Pressable>
+        <Pressable
+          style={styles.summarySection}
+          onPress={() => navigation.navigate('Summary')}
+        >
+          <View style={styles.summaryContent}>
+            <Text style={styles.summaryText}>Get details by monthly</Text>
+          </View>
+          <FontAwesome5 name="chevron-right" size={20} color="#63B3ED" />
+        </Pressable>
+        <Pressable
+          style={styles.summarySection}
+          onPress={() => navigation.navigate('Summary')}
+        >
+          <View style={styles.summaryContent}>
+            <Text style={styles.summaryText}>Get details by yearly</Text>
+          </View>
+          <FontAwesome5 name="chevron-right" size={20} color="#63B3ED" />
+        </Pressable>
+      </View>
     </ScrollView>
   );
 };
@@ -213,6 +232,12 @@ const styles = StyleSheet.create({
     color: '#F7FAFC', // Light text for section titles
     marginBottom: 16,
   },
+  summaarySectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#F7FAFC', // Light text for section titles
+    marginLeft: 20
+  },
   actionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -243,7 +268,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#2D3748',
     borderRadius: 12,
-    margin: 20,
+    marginLeft: 20,
+    marginRight: 20,
+    marginBottom: 10,
+    marginTop: 10,
     padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -263,6 +291,33 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#63B3ED', // Light blue for call-to-action
+  },
+  timingSection: {
+    margin: 20,
+    marginBottom: 0,
+  },
+  timingTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#F7FAFC', // Light text for section titles
+    marginBottom: 16,
+  },
+  timingButton: {
+    backgroundColor: '#63B3ED', // Light blue for button
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  timingButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
 });
 
