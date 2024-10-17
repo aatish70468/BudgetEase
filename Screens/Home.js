@@ -117,7 +117,7 @@ const Home = ({ navigation }) => {
         <Text style={styles.summaarySectionTitle}>View Summary</Text>
         <Pressable
           style={styles.summarySection}
-          onPress={() => navigation.navigate('Summary')}
+          onPress={() => navigation.navigate('DailySummary')}
         >
           <View style={styles.summaryContent}>
             <Text style={styles.summaryText}>Get details by daily</Text>
@@ -126,7 +126,7 @@ const Home = ({ navigation }) => {
         </Pressable>
         <Pressable
           style={styles.summarySection}
-          onPress={() => navigation.navigate('Summary')}
+          onPress={() => navigation.navigate('WeeklySummary')}
         >
           <View style={styles.summaryContent}>
             <Text style={styles.summaryText}>Get details by weekly</Text>
@@ -135,7 +135,7 @@ const Home = ({ navigation }) => {
         </Pressable>
         <Pressable
           style={styles.summarySection}
-          onPress={() => navigation.navigate('Summary')}
+          onPress={() => navigation.navigate('MonthlySummary')}
         >
           <View style={styles.summaryContent}>
             <Text style={styles.summaryText}>Get details by monthly</Text>
@@ -144,7 +144,7 @@ const Home = ({ navigation }) => {
         </Pressable>
         <Pressable
           style={styles.summarySection}
-          onPress={() => navigation.navigate('Summary')}
+          onPress={() => navigation.navigate('YearlySummary')}
         >
           <View style={styles.summaryContent}>
             <Text style={styles.summaryText}>Get details by yearly</Text>
