@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, Text, View, Pressable, ScrollView, Image } from 'react-native';
 import { FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { auth, db, storage } from './../FirebaseConfig';
 import { collection, addDoc, doc, onSnapshot, query, where, updateDoc, getDocs } from 'firebase/firestore';
+import { useFocusEffect } from '@react-navigation/native'
 
 const Home = ({ navigation }) => {
 
@@ -12,10 +13,12 @@ const Home = ({ navigation }) => {
   const [userTotalHours, setUserTotalHours] = useState(0);
 
   // Fetch Firestore Data
-  useEffect(() => {
-    getUserPayrate();
-    getUserHours();
-  }, []); // This useEffect runs once on component mount
+  useFocusEffect(
+    useCallback(() => {
+      getUserPayrate();
+      getUserHours();
+    }, [])
+  )
 
   // Fetch payrate from Firestore
   const getUserPayrate = async () => {
@@ -35,12 +38,13 @@ const Home = ({ navigation }) => {
     const collectionRef = collection(db, 'users', auth.currentUser.email, month);
     let getHours = 0;
     
-    onSnapshot(collectionRef, (snapshot) => {
-      snapshot.docs.forEach(doc => {
+    const getTotalHours = await getDocs(collectionRef)
+    if (getTotalHours.docs.length > 0) {
+      getTotalHours.forEach(doc => {
         getHours += doc.data().totalHours;
       });
       setUserTotalHours(getHours);
-    });
+    }
   };
 
   // Calculate income after payrate and hours are fetched
