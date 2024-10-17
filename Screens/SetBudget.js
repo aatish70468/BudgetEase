@@ -70,12 +70,13 @@ const SetBudget = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Set Monthly Budget</Text>
         <View style={styles.inputContainer}>
-          <FontAwesome name="dollar" size={20} color="#4A5568" style={styles.icon} />
+          <FontAwesome name="dollar" size={20} color="#63B3ED" style={styles.icon} />
           <TextInput
             style={styles.input}
             value={monthlyBudget}
             onChangeText={setMonthlyBudget}
             placeholder="Enter monthly budget"
+            placeholderTextColor="#7F8487"
             keyboardType="numeric"
           />
         </View>
@@ -87,22 +88,24 @@ const SetBudget = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Add Expense</Text>
         <View style={styles.inputContainer}>
-          <FontAwesome name="dollar" size={20} color="#4A5568" style={styles.icon} />
+          <FontAwesome name="dollar" size={20} color="#63B3ED" style={styles.icon} />
           <TextInput
             style={styles.input}
             value={expenseAmount}
             onChangeText={setExpenseAmount}
             placeholder="Enter expense amount"
+            placeholderTextColor="#7F8487"
             keyboardType="numeric"
           />
         </View>
         <View style={styles.inputContainer}>
-          <FontAwesome name="pencil" size={20} color="#4A5568" style={styles.icon} />
+          <FontAwesome name="pencil" size={20} color="#63B3ED" style={styles.icon} />
           <TextInput
             style={styles.input}
             value={expenseDescription}
             onChangeText={setExpenseDescription}
             placeholder="Enter expense description"
+            placeholderTextColor="#7F8487"
           />
         </View>
         <TouchableOpacity style={styles.button} onPress={addExpense}>
@@ -128,11 +131,11 @@ const SetBudget = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7FAFC',
+    backgroundColor: '#121212', // Dark background
     padding: 20,
   },
   section: {
-    backgroundColor: 'white',
+    backgroundColor: '#1F1F1F', // Darker section background
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
@@ -146,13 +149,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#2D3748',
+    color: '#F7FAFC', // Light text color
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#7F8487', // Dark border color
     borderRadius: 8,
     marginBottom: 15,
     paddingHorizontal: 10,
@@ -164,20 +167,21 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     fontSize: 16,
+    color: '#f8f8f8', // Light text color for input
   },
   button: {
-    backgroundColor: '#4299E1',
+    backgroundColor: '#63B3ED', // Bright button color
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
   },
   buttonText: {
-    color: 'white',
+    color: '#FFFFFF', // Dark text for button
     fontWeight: 'bold',
     fontSize: 16,
   },
   summarySection: {
-    backgroundColor: '#EBF8FF',
+    backgroundColor: '#2A2A2A', // Slightly lighter than container
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
@@ -185,10 +189,10 @@ const styles = StyleSheet.create({
   summaryText: {
     fontSize: 16,
     marginBottom: 5,
-    color: '#2B6CB0',
+    color: '#F7FAFC', // Light summary text
   },
   resetButton: {
-    backgroundColor: '#ED8936',
+    backgroundColor: '#63B3ED', // Bright reset button color
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
