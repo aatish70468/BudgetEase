@@ -14,9 +14,12 @@ import ForgotPassword from './Screens/ForgotPassword';
 import Splash from './Screens/Splash';
 import AddHours from './Screens/AddHours';
 import AddPayRate from './Screens/AddPayRate';
-import Summary from './Screens/Summary';
+import DailySummary from './Screens/DailySummary';
 import SetBudget from './Screens/SetBudget';
 import AddTodaysTiming from './Screens/AddTodaysTiming';
+import WeeklySummary from './Screens/WeeklySummary';
+import MonthlySummary from './Screens/MonthlySummary';
+import YearlySummary from './Screens/YearlySummary';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -142,9 +145,24 @@ export default function App() {
           options={{ headerTitle: "Add Today's Timing" }} 
         />
         <Stack.Screen 
-          name="Summary" 
-          component={Summary} 
-          options={{ headerTitle: 'Summary' }} 
+          name="DailySummary" 
+          component={DailySummary} 
+          options={{ headerTitle: 'Daily Summary' }} 
+        />
+        <Stack.Screen 
+          name="WeeklySummary" 
+          component={WeeklySummary} 
+          options={{ headerTitle: 'Weekly Summary' }} 
+        />
+        <Stack.Screen 
+          name="MonthlySummary" 
+          component={MonthlySummary} 
+          options={{ headerTitle: 'Monthly Summary' }} 
+        />
+        <Stack.Screen 
+          name="YearlySummary" 
+          component={YearlySummary} 
+          options={{ headerTitle: 'Yearly Summary' }} 
         />
       </Stack.Navigator>
     </NavigationContainer>
