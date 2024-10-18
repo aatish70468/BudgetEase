@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { auth, db } from '../FirebaseConfig';
-import { collection, setDoc, doc, getDocs, query, where, updateDoc, onSnapshot } from 'firebase/firestore'
+import { auth, db, createBatch } from '../FirebaseConfig';
+import { collection, setDoc, doc, getDoc, getDocs, query, where, updateDoc, onSnapshot } from 'firebase/firestore'
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const AddTodaysTiming = () => {
@@ -13,11 +13,38 @@ const AddTodaysTiming = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showClockIn, setShowClockIn] = useState(false);
   const [showClockOut, setShowClockOut] = useState(false);
+  const [weeklyLegalHoursLimit, setWeeklyLegalHoursLimit] = useState(0); // Track the user's weekly legal hours limit
+  const [weeklyWorkedLegalHours, setWeeklyWorkedLegalHours] = useState(0); // Track already worked legal hours in current week
 
   useEffect(() => {
     getCurrUser();
   }, [])
 
+  function isTimestamp(date) {
+    // Check if the input is an object and has the required properties
+    return (
+        typeof date === 'object' &&
+        date !== null &&
+        typeof date.seconds === 'number' &&
+        typeof date.nanoseconds === 'number'
+    );
+}
+
+  function getWeekNumber(startDate, inputDate) {
+    const start = isTimestamp(startDate) ? new Date(startDate.seconds * 1000) : new Date(startDate);
+    const input = new Date(inputDate);
+  
+    // Calculate the difference in time
+    const timeDifference = input.getTime() - start.getTime();
+    // Calculate the difference in days
+    const dayDifference = timeDifference / (1000 * 3600 * 24);
+  
+    // Calculate the week number based on day difference (Each week is 7 days)
+    const weekNumber = Math.floor(dayDifference / 7) + 1;
+    console.log(weekNumber)
+    return weekNumber;
+  }
+  
   const formatDate = (date) => {
     const day = String(date.getDate()).padStart(2, '0'); // Get the day
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Get the month
@@ -32,10 +59,154 @@ const AddTodaysTiming = () => {
 
     onSnapshot(getUserDoc, (snapshot) => {
       const user = snapshot.docs.map(doc => {
-        console.log(doc.data())
         setEmail(doc.data().email)
+        setWeeklyLegalHoursLimit(doc.data().legalHours || 0);
       })
     })
+  }
+
+  function calculateHoursForWeek(totalHours, user, weeklyWorkedLegalHours) {
+    let legalHours = 0;
+    let cashHours = 0;
+  
+    // Check if the user has a weekly legal hours limit
+    //const weeklyLegalHoursLimit = user.weeklyLegalHours || 0; // Get legal hours limit from user data
+  
+    // Calculate remaining legal hours allowed for the week
+    const remainingLegalHours = Math.max(weeklyLegalHoursLimit - weeklyWorkedLegalHours, 0);
+  
+    if (totalHours <= remainingLegalHours) {
+      // If the entered hours are less than or equal to the remaining legal hours, all are legal
+      legalHours = totalHours;
+    } else {
+      // If the entered hours exceed the remaining legal hours, split into legal and cash hours
+      legalHours = remainingLegalHours;
+      cashHours = totalHours - remainingLegalHours;
+    }
+    return { legalHours, cashHours };
+  }
+
+  async function insertDataWithWeeklyLegalLimit(userId, email, date, totalHours, legalPayRate, cashPayRate) {
+    const monthName = new Date(date).toLocaleString('default', { month: 'long' });
+    const year = new Date(date).getFullYear();
+    const monthNumber = new Date(date).getMonth() + 1; // Month number (1-12)
+    
+    // Firestore references
+    const userRef = doc(db, 'users', email);
+    const dailyRef = doc(collection(db, 'daily', email, monthName), formatDate(date));
+    const monthlyRef = doc(collection(db, 'monthly', email, String(monthNumber)), '1');
+    const yearlyRef = doc(collection(db, 'yearly', email, String(year)), String(year));
+  
+    // Step 1: Get the user data from the users collection
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) {
+      console.error('User data not found');
+      return;
+    }
+    const userData = userDoc.data();
+  
+    // Step 2: Retrieve the total legal hours worked in the current week so far
+    // Check if the user has a start date for week 
+    const startDate = userData.startDate ? userData.startDate : date;
+
+    if (!userData.startDate) {
+      await updateDoc(userRef, {
+        startDate: startDate
+      }).then(() => {
+        console.log('Start date set to today');
+      }).catch((error) => {
+        console.error('Error updating start date:', error);
+      });
+    }
+    
+
+    // Calculate the appropriate week number based on the start date
+    const weekNumber = getWeekNumber(startDate, date);
+    const weeklyRef = doc(collection(db, 'weekly', email, String(weekNumber)), '1');
+    const weeklyDoc = await getDoc(weeklyRef);
+
+    const weeklyWorkedLegalHours = weeklyDoc?.data()?.legalHours || 0;
+  
+    // Step 3: Calculate legal and cash hours based on total hours and the remaining weekly legal limit
+    const { legalHours, cashHours } = calculateHoursForWeek(totalHours, userData, weeklyWorkedLegalHours);
+  
+    // Calculate legal and cash pay
+    const legalPayCalculated = legalHours * userData.legalRate;
+    const cashPayCalculated = cashHours * userData.cashRate;
+  
+    const dailyData = { date, totalHours, legalHours, cashHours, legalPay: legalPayCalculated, cashPay: cashPayCalculated };
+    // Firestore batch for atomic writes
+    const batch = createBatch();
+  
+    // Step 4: Insert daily entry
+    batch.set(dailyRef, dailyData);
+
+    // Step 5: Update weekly record
+    if (weeklyDoc.exists()) {
+      const weeklyData = weeklyDoc.data();
+      batch.update(weeklyRef, {
+        legalHours: weeklyData.legalHours + legalHours,
+        cashHours: weeklyData.cashHours + cashHours,
+        legalPay: weeklyData.legalPay + legalPayCalculated,
+        cashPay: weeklyData.cashPay + cashPayCalculated,
+      });
+    } else {
+      batch.set(weeklyRef, {
+        weekNumber,
+        legalHours,
+        cashHours,
+        legalPay: legalPayCalculated,
+        cashPay: cashPayCalculated,
+      });
+    }
+  
+    // Step 6: Update monthly record
+    const monthlyDoc = await getDoc(monthlyRef);
+    if (monthlyDoc.exists()) {
+      const monthlyData = monthlyDoc.data();
+      batch.update(monthlyRef, {
+        legalHours: monthlyData.legalHours + legalHours,
+        cashHours: monthlyData.cashHours + cashHours,
+        legalPay: monthlyData.legalPay + legalPayCalculated,
+        cashPay: monthlyData.cashPay + cashPayCalculated,
+      });
+    } else {
+      batch.set(monthlyRef, {
+        monthNumber,
+        legalHours,
+        cashHours,
+        legalPay: legalPayCalculated,
+        cashPay: cashPayCalculated,
+      });
+    }
+  
+    // Step 7: Update yearly record
+    const yearlyDoc = await getDoc(yearlyRef);
+    if (yearlyDoc.exists()) {
+      const yearlyData = yearlyDoc.data();
+      batch.update(yearlyRef, {
+        legalHours: yearlyData.legalHours + legalHours,
+        cashHours: yearlyData.cashHours + cashHours,
+        legalPay: yearlyData.legalPay + legalPayCalculated,
+        cashPay: yearlyData.cashPay + cashPayCalculated,
+      });
+    } else {
+      batch.set(yearlyRef, {
+        year,
+        legalHours,
+        cashHours,
+        legalPay: legalPayCalculated,
+        cashPay: cashPayCalculated,
+      });
+    }
+  
+    // Commit the batch
+    try {
+      await batch.commit();
+      console.log('Data inserted successfully with weekly legal hour limit!');
+    } catch (error) {
+      console.error('Error inserting data: ', error);
+    }
   }
 
   const onDateChange = (selectedDate) => {
@@ -56,25 +227,38 @@ const AddTodaysTiming = () => {
     setClockOut(currentTime);
   };
 
+  // Handle the addition of hours
   const handleAddHours = async () => {
     try {
-      console.log(`Mail: ${email}`)
-
-      console.log(`Time IN: ${clockIn.getHours()} and Time OUT: ${clockOut.getHours()}`);
-      const totalHours = (clockOut - clockIn) / (1000 * 60 * 60); // Convert milliseconds to hours
-      console.log(`TOtal Time: ${totalHours}`);
-
-      const hoursToInsert = {
-        totalHours: totalHours,
-        date: new Date(date.toISOString())
+      const userRef = doc(db, 'users', email);
+      const userDoc = await getDoc(userRef);
+      const userData = userDoc.data()
+      // Step 2: Retrieve the total legal hours worked in the current week so far
+      // Check if the user has a start date for week 1
+      let startDate;
+      if (!userDoc.exists) {
+        // If no start date exists, set today as the start date
+        startDate = date;
+        await userRef.set({ startDate }); // Save the start date for the user
+      } else {
+        // Retrieve the existing start date  
+        startDate = userDoc.data().startDate;
       }
 
-      const userRef = doc(db, 'users', auth.currentUser.email);
-      const collectionRef = collection(userRef, `${date.toLocaleString('default', { month: 'long' })}`)
+      console.log(`Mail: ${email}`);
+      console.log(`Time IN: ${clockIn.getHours()} and Time OUT: ${clockOut.getHours()}`);
+      const totalHours = (clockOut - clockIn) / (1000 * 60 * 60); // Convert milliseconds to hours
+      console.log(`Total Time: ${totalHours}`);
 
-      //insert the document using the collection reference
-      const docRef = await setDoc(doc(collectionRef, formatDate(new Date(date.toISOString()))), hoursToInsert)
-      
+      // Step 1: Calculate legal and cash hours based on weekly limit
+      const { legalHours, cashHours } = calculateHoursForWeek(totalHours, userData, weeklyWorkedLegalHours);
+
+      // Calculate legal and cash pay
+      const legalPayCalculated = legalHours * userData.legalPayRate;
+      const cashPayCalculated = cashHours * userData.cashPayRate;
+
+      await insertDataWithWeeklyLegalLimit(auth.currentUser.uid, email, date, totalHours, legalPayCalculated, cashPayCalculated);
+
       alert('Hours added successfully!');
       setClockIn(new Date());
       setClockOut(new Date());
