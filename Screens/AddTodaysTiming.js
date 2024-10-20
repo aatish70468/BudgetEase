@@ -93,7 +93,7 @@ const AddTodaysTiming = () => {
 
     // Firestore references
     const userRef = doc(db, 'users', email);
-    const dailyRef = doc(collection(db, 'daily', email, monthName), formatDate(date));
+    const dailyRef = doc(collection(db, 'daily', email, String(monthNumber)), formatDate(date));
     const monthlyRef = doc(collection(db, 'monthly', email, String(monthNumber)), '1');
     const yearlyRef = doc(collection(db, 'yearly', email, String(year)), String(year));
 
@@ -134,7 +134,7 @@ const AddTodaysTiming = () => {
     const legalPayCalculated = legalHours * userData.legalRate;
     const cashPayCalculated = cashHours * userData.cashRate;
 
-    const dailyData = { date, totalHours, legalHours, cashHours, legalPay: legalPayCalculated, cashPay: cashPayCalculated };
+    const dailyData = { date, totalHours, legalHours, cashHours, legalPay: legalPayCalculated, cashPay: cashPayCalculated, monthNumber: monthNumber };
     // Firestore batch for atomic writes
     const batch = createBatch();
 
@@ -157,6 +157,8 @@ const AddTodaysTiming = () => {
         cashHours,
         legalPay: legalPayCalculated,
         cashPay: cashPayCalculated,
+        startDate: date,
+        startDateDayNum: new Date(date).getDay()
       });
     }
 
@@ -199,6 +201,49 @@ const AddTodaysTiming = () => {
         cashPay: cashPayCalculated,
       });
     }
+
+    // Step 8: Delete past 2nd month data from Daily record
+    const pastMonthDate = monthNumber - 2;
+    console.log(`Month Number: ${monthNumber}`);
+    console.log(`Past Month Number: ${pastMonthDate}`);
+    
+    const pastDailyCollectionRef1 = collection(db, 'daily', email, String(pastMonthDate));
+    const pastDailyRef = query(pastDailyCollectionRef1, where('monthNumber', '==', pastMonthDate))
+    const pastDailyDoc2 = await getDocs(pastDailyRef)
+
+    if (pastDailyDoc2.docs.length > 0) {
+      pastDailyDoc2.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      })
+    }
+
+    //Step 9: Delete past 8th week data from Weekly record
+    const pastWeekNumber = weekNumber - 7;
+    console.log(`Past Week Number: ${pastWeekNumber}`);
+    const pastWeekRef = doc(collection(db, 'weekly', email, String(pastWeekNumber)), '1');
+    const pastWeekDoc = await getDoc(pastWeekRef)
+    if (pastWeekDoc.exists()) {
+      console.log('2');
+      batch.delete(pastWeekRef);
+    }
+
+    // Step 10: Delete past 2nd months data from Monthly record
+    const pastMonthNumber = monthNumber - 2;
+    console.log(`Month Number: ${pastMonthNumber}`);
+    const pastMonthlyRef = doc(collection(db, 'monthly', email, String(pastMonthNumber)), '1');
+    const pastMonthlyDoc = await getDoc(pastMonthlyRef)
+    if (pastMonthlyDoc.exists()) {
+      console.log('3');
+      batch.delete(pastMonthlyRef);
+    }
+
+    // Step 11: Delete past 5 years data from Yearly record
+    // const pastYear = new Date(date).getFullYear() - 5;
+    // const pastYearlyRef = doc(collection(db, 'yearly', email, String(pastYear)), String(pastYear));
+    // const pastYearlyDoc = await getDoc(pastYearlyRef)
+    // if (!pastYearlyDoc.exists()) {
+    //   batch.delete(pastYearlyRef);
+    // }
 
     // Commit the batch
     try {
