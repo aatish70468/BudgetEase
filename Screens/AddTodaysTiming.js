@@ -149,6 +149,7 @@ const AddTodaysTiming = () => {
         cashHours: weeklyData.cashHours + cashHours,
         legalPay: weeklyData.legalPay + legalPayCalculated,
         cashPay: weeklyData.cashPay + cashPayCalculated,
+        endDate: date,
       });
     } else {
       batch.set(weeklyRef, {
