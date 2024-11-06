@@ -1,6 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { doc,collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from './../FirebaseConfig'
 
 export default function DailySummary() {
 
@@ -13,23 +16,46 @@ export default function DailySummary() {
     getDailyDataFromDB();
   }, [])
 
+  const getCurrentDate = () => {
+    const date = new Date()
+    const day = String(date.getDate()).padStart(2, '0'); // Get the day
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Get the month
+    const year = date.getFullYear(); // Get the full year
+
+    return `${day}${month}${year}`; 
+    
+  };
+  
   const getDailyDataFromDB = async () => {
-    //get the legal hours from the current day
-    const getDayRef = collection(db, 'daily', auth.currentUser.email, getCurrentDate());
-    const getDayDoc = query(getDayRef, where('dayNum', '==', getCurrentDate()));
-    const getDayData = await getDocs(getDayDoc);
-    if (getDayData.docs.length === 0) {
-      setLegalHours(0);
-      setCashHours(0);
-      setLegalPay(0);
-      setCashPay(0);
-    } else {
-      setLegalHours(getDayData.docs[0].data().legalHours);
-      setCashHours(getDayData.docs[0].data().cashHours);
-      setLegalPay(getCashPayData.docs[0].data().legalPay);
-      setCashPay(getCashPayData.docs[0].data().cashPay);
+    try {
+      const currentDate = getCurrentDate();
+      const monthNum = new Date().getMonth() + 1; 
+      console.log('Get Current Date', currentDate);
+      const userEmail = auth.currentUser.email;
+      
+      const dayRef = collection(db, 'daily', userEmail, String(monthNum));
+      const dayQuery = query(dayRef, where('date', '==', currentDate));
+      
+      const daySnapshot = await getDocs(dayQuery);
+  
+      if (daySnapshot.empty) {
+        console.log('No matching documents for today.');
+        setLegalHours(0);
+        setCashHours(0);
+        setLegalPay(0);
+        setCashPay(0);
+      } else {
+        const dayData = daySnapshot.docs[0].data();
+        setLegalHours(dayData.legalHours || 0);
+        setCashHours(dayData.cashHours || 0);
+        setLegalPay(dayData.legalPay || 0);
+        setCashPay(dayData.cashPay || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching daily data:', error);
+      // Handle the error appropriately (e.g., show an error message to the user)
     }
-  }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
