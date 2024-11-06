@@ -134,7 +134,7 @@ const AddTodaysTiming = () => {
     const legalPayCalculated = legalHours * userData.legalRate;
     const cashPayCalculated = cashHours * userData.cashRate;
 
-    const dailyData = { date, totalHours, legalHours, cashHours, legalPay: legalPayCalculated, cashPay: cashPayCalculated, monthNumber: monthNumber };
+    const dailyData = { date: formatDate(date ), totalHours, legalHours, cashHours, legalPay: legalPayCalculated, cashPay: cashPayCalculated, monthNumber: monthNumber };
     // Firestore batch for atomic writes
     const batch = createBatch();
 

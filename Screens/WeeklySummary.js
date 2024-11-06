@@ -14,7 +14,7 @@ export default function WeeklySummary() {
     }, [])
 
     const getWeeklySummary = async () => {
-        const getDayRef = collection(db, 'daily', auth.currentUser.email, getCurrentDate());
+        const getDayRef = collection(db, 'weekly', auth.currentUser.email, getCurrentDate());
         const getDayDoc = query(getDayRef, where('dayNum', '==', getCurrentDate()));
         const getDayData = await getDocs(getDayDoc);
         if (getDayData.docs.length === 0) {
