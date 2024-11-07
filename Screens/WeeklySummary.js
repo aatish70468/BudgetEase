@@ -1,79 +1,143 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from './../FirebaseConfig';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function WeeklySummary() {
+  const [legalHours, setLegalHours] = useState(0);
+  const [cashHours, setCashHours] = useState(0);
+  const [legalPay, setLegalPay] = useState(0);
+  const [cashPay, setCashPay] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-    const [legalHours, setLegalHours] = useState(0);
-    const [cashHours, setCashHours] = useState(0);
-    const [legalPay, setLegalPay] = useState(0);
-    const [cashPay, setCashPay] = useState(0);
+  useEffect(() => {
+    getWeeklyDataFromDB(selectedDate);
+  }, [selectedDate]);
 
-    useEffect(() => {
-        getWeeklySummary();
-    }, [])
+  const getWeekStart = (date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setDate(diff));
+  };
 
-    const getWeeklySummary = async () => {
-        const getDayRef = collection(db, 'weekly', auth.currentUser.email, getCurrentDate());
-        const getDayDoc = query(getDayRef, where('dayNum', '==', getCurrentDate()));
-        const getDayData = await getDocs(getDayDoc);
-        if (getDayData.docs.length === 0) {
-            setLegalHours(0);
-            setCashHours(0);
-            setLegalPay(0);
-            setCashPay(0);
-        } else {
-            setLegalHours(getDayData.docs[0].data().legalHours);
-            setCashHours(getDayData.docs[0].data().cashHours);
-            setLegalPay(getCashPayData.docs[0].data().legalPay);
-            setCashPay(getCashPayData.docs[0].data().cashPay);
+  const getWeekEnd = (date) => {
+    const weekStart = getWeekStart(date);
+    return new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
+  };
+
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}${month}${year}`;
+  };
+
+  const getWeeklyDataFromDB = async (date) => {
+    try {
+      const weekStart = getWeekStart(date);
+      const weekEnd = getWeekEnd(date);
+      const userEmail = auth.currentUser.email;
+      
+      let totalLegalHours = 0;
+      let totalCashHours = 0;
+      let totalLegalPay = 0;
+      let totalCashPay = 0;
+
+      for (let d = new Date(weekStart); d <= weekEnd; d.setDate(d.getDate() + 1)) {
+        const currentDate = formatDate(d);
+        const monthNum = d.getMonth() + 1;
+        
+        const dayRef = collection(db, 'daily', userEmail, String(monthNum));
+        const dayQuery = query(dayRef, where('date', '==', currentDate));
+        
+        const daySnapshot = await getDocs(dayQuery);
+  
+        if (!daySnapshot.empty) {
+          const dayData = daySnapshot.docs[0].data();
+          totalLegalHours += dayData.legalHours || 0;
+          totalCashHours += dayData.cashHours || 0;
+          totalLegalPay += dayData.legalPay || 0;
+          totalCashPay += dayData.cashPay || 0;
         }
-    }
+      }
 
-    return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-                <View style={styles.calculationContainer}>
-                    <View style={styles.calculationCard}>
-                        <View style={styles.cardHeader}>
-                            <FontAwesome5 name="calendar-week" size={20} color="#63B3ED" />
-                            <Text style={styles.calculationTitle}>Weekly Hours</Text>
-                        </View>
-                        <View style={styles.calculationRow}>
-                            <Text style={styles.calculationLabel}>Legal Hours:</Text>
-                            <Text style={styles.calculationValue}>{legalHours}</Text>
-                        </View>
-                        <View style={styles.calculationRow}>
-                            <Text style={styles.calculationLabel}>Cash Hours:</Text>
-                            <Text style={styles.calculationValue}>{cashHours}</Text>
-                        </View>
-                        <View style={[styles.calculationRow, styles.totalRow]}>
-                            <Text style={styles.calculationLabel}>Total Hours:</Text>
-                            <Text style={styles.calculationValue}>{legalHours + cashHours}</Text>
-                        </View>
-                    </View>
-                    <View style={styles.calculationCard}>
-                        <View style={styles.cardHeader}>
-                            <Ionicons name="cash-outline" size={24} color="#63B3ED" />
-                            <Text style={styles.calculationTitle}>Weekly Pay</Text>
-                        </View>
-                        <View style={styles.calculationRow}>
-                            <Text style={styles.calculationLabel}>Legal Pay:</Text>
-                            <Text style={styles.calculationValue}>$ {legalPay}</Text>
-                        </View>
-                        <View style={styles.calculationRow}>
-                            <Text style={styles.calculationLabel}>Cash Pay:</Text>
-                            <Text style={styles.calculationValue}>$ {cashPay}</Text>
-                        </View>
-                        <View style={[styles.calculationRow, styles.totalRow]}>
-                            <Text style={styles.calculationLabel}>Total Pay:</Text>
-                            <Text style={styles.calculationValue}>$ {legalPay + cashPay}</Text>
-                        </View>
-                    </View>
-                </View>
-            </ScrollView>
-        </SafeAreaView>
-    );
+      setLegalHours(totalLegalHours);
+      setCashHours(totalCashHours);
+      setLegalPay(totalLegalPay);
+      setCashPay(totalCashPay);
+    } catch (error) {
+      console.error('Error fetching weekly data:', error);
+    }
+  };
+
+  const onDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShowDatePicker(false);
+    setSelectedDate(currentDate);
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <TouchableOpacity style={styles.dateSelector} onPress={() => setShowDatePicker(true)}>
+          <Text style={styles.dateSelectorText}>
+            Week of {getWeekStart(selectedDate).toDateString()}
+          </Text>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default"
+            onChange={onDateChange}
+          />
+        )}
+        <View style={styles.calculationContainer}>
+          <View style={styles.calculationCard}>
+            <View style={styles.cardHeader}>
+              <FontAwesome5 name="calendar-week" size={20} color="#63B3ED" />
+              <Text style={styles.calculationTitle}>Weekly Hours</Text>
+            </View>
+            <View style={styles.calculationRow}>
+              <Text style={styles.calculationLabel}>Legal Hours:</Text>
+              <Text style={styles.calculationValue}>{legalHours.toFixed(2)}</Text>
+            </View>
+            <View style={styles.calculationRow}>
+              <Text style={styles.calculationLabel}>Cash Hours:</Text>
+              <Text style={styles.calculationValue}>{cashHours.toFixed(2)}</Text>
+            </View>
+            <View style={[styles.calculationRow, styles.totalRow]}>
+              <Text style={styles.calculationLabel}>Total Hours:</Text>
+              <Text style={styles.calculationValue}>{(legalHours + cashHours).toFixed(2)}</Text>
+            </View>
+          </View>
+          <View style={styles.calculationCard}>
+            <View style={styles.cardHeader}>
+              <Ionicons name="cash-outline" size={24} color="#63B3ED" />
+              <Text style={styles.calculationTitle}>Weekly Pay</Text>
+            </View>
+            <View style={styles.calculationRow}>
+              <Text style={styles.calculationLabel}>Legal Pay:</Text>
+              <Text style={styles.calculationValue}>$ {legalPay.toFixed(2)}</Text>
+            </View>
+            <View style={styles.calculationRow}>
+              <Text style={styles.calculationLabel}>Cash Pay:</Text>
+              <Text style={styles.calculationValue}>$ {cashPay.toFixed(2)}</Text>
+            </View>
+            <View style={[styles.calculationRow, styles.totalRow]}>
+              <Text style={styles.calculationLabel}>Total Pay:</Text>
+              <Text style={styles.calculationValue}>$ {(legalPay + cashPay).toFixed(2)}</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -128,5 +192,18 @@ const styles = StyleSheet.create({
         borderTopColor: '#7F8487', // Subtle border for total row
         paddingTop: 8,
         marginTop: 8,
+    },
+    dateSelector: {
+        backgroundColor: '#2D3748',
+        padding: 10,
+        borderRadius: 8,
+        marginHorizontal: 16,
+        marginTop: 16,
+        alignItems: 'center',
+    },
+    dateSelectorText: {
+    color: '#F7FAFC',
+    fontSize: 16,
+    fontWeight: '600',
     },
 });
