@@ -4,42 +4,41 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } fr
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { doc,collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from './../FirebaseConfig'
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function DailySummary() {
-
   const [legalHours, setLegalHours] = useState(0);
   const [cashHours, setCashHours] = useState(0);
   const [legalPay, setLegalPay] = useState(0);
   const [cashPay, setCashPay] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
-    getDailyDataFromDB();
-  }, [])
-
-  const getCurrentDate = () => {
-    const date = new Date()
-    const day = String(date.getDate()).padStart(2, '0'); // Get the day
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Get the month
-    const year = date.getFullYear(); // Get the full year
-
-    return `${day}${month}${year}`; 
-    
+    getDailyDataFromDB(selectedDate);
+  }, [selectedDate]);
+  
+  const formatDate = (date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}${month}${year}`;
   };
   
-  const getDailyDataFromDB = async () => {
+  const getDailyDataFromDB = async (date) => {
     try {
-      const currentDate = getCurrentDate();
-      const monthNum = new Date().getMonth() + 1; 
-      console.log('Get Current Date', currentDate);
+      const formattedDate = formatDate(date);
+      const monthNum = date.getMonth() + 1;
+      console.log('Get Current Date', formattedDate);
       const userEmail = auth.currentUser.email;
       
       const dayRef = collection(db, 'daily', userEmail, String(monthNum));
-      const dayQuery = query(dayRef, where('date', '==', currentDate));
+      const dayQuery = query(dayRef, where('date', '==', formattedDate));
       
       const daySnapshot = await getDocs(dayQuery);
   
       if (daySnapshot.empty) {
-        console.log('No matching documents for today.');
+        console.log('No matching documents for the selected date.');
         setLegalHours(0);
         setCashHours(0);
         setLegalPay(0);
@@ -53,13 +52,31 @@ export default function DailySummary() {
       }
     } catch (error) {
       console.error('Error fetching daily data:', error);
-      // Handle the error appropriately (e.g., show an error message to the user)
     }
+  };
+
+  const onDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShowDatePicker(false);
+    setSelectedDate(currentDate);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <TouchableOpacity style={styles.dateSelector} onPress={() => setShowDatePicker(true)}>
+          <Text style={styles.dateSelectorText}>
+            {selectedDate.toDateString()}
+          </Text>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default"
+            onChange={onDateChange}
+          />
+        )}
         <View style={styles.calculationContainer}>
           <View style={styles.calculationCard}>
             <View style={styles.cardHeader}>
@@ -155,5 +172,18 @@ const styles = StyleSheet.create({
     borderTopColor: '#7F8487', // Subtle border for total row
     paddingTop: 8,
     marginTop: 8,
+  },
+  dateSelector: {
+    backgroundColor: '#2D3748',
+    padding: 10,
+    borderRadius: 8,
+    marginHorizontal: 16,
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  dateSelectorText: {
+    color: '#F7FAFC',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
