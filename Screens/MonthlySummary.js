@@ -81,7 +81,7 @@ export default function MonthlySummary() {
               <DateTimePicker
                 value={selectedMonth}
                 mode="date"
-                display="spinner"
+                display="default"
                 onChange={onMonthChange}
               />
             )}
