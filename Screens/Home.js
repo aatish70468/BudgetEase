@@ -24,35 +24,43 @@ const Home = ({ navigation }) => {
   const getUserPayrate = async () => {
     const collectionRef = collection(db, 'users');
     const getUserDoc = query(collectionRef, where('id', '==', auth.currentUser.uid));
-
+  
     onSnapshot(getUserDoc, (snapshot) => {
-      const user = snapshot.docs.map(doc => {
-        setUserPayrate(doc.data().legalRate);
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        console.log("User Payrate: ", data.legalRate);  // Debugging Payrate
+        setUserPayrate(data.legalRate);
       });
     });
   };
-
-  // Fetch total hours worked for the current month
+  
   const getUserHours = async () => {
-    const month = new Date().toLocaleString('default', { month: 'long' });
-    const collectionRef = collection(db, 'users', auth.currentUser.email, month);
+    const month = new Date().getMonth()+1;
+    console.log("Current Month: ", month);
+    const collectionRef = doc(collection(db, 'monthly', auth.currentUser.email, String(month)), "1");
     let getHours = 0;
-    
-    const getTotalHours = await getDocs(collectionRef)
+  
+    const getTotalHours = await getDocs(collectionRef);
     if (getTotalHours.docs.length > 0) {
       getTotalHours.forEach(doc => {
-        getHours += doc.data().totalHours;
+        const data = doc.data();
+        console.log("Worked Hours for the day: ", data.legalHours);  // Debugging Hours
+        getHours += data.legalHours;
       });
       setUserTotalHours(getHours);
+    } else {
+      console.log("No hours found for this month");
     }
   };
 
   // Calculate income after payrate and hours are fetched
   useEffect(() => {
+    console.log("Payrate: ", userPayrate, "Total Hours: ", userTotalHours);  // Debugging effect
+  
     if (userPayrate > 0 && userTotalHours > 0) {
       const weeklyIncomeCalculated = userTotalHours * userPayrate; 
       const monthlyIncomeCalculated = userTotalHours * userPayrate;
-      
+  
       setWeeklyIncome(weeklyIncomeCalculated);
       setMonthlyIncome(monthlyIncomeCalculated);
     }
@@ -307,7 +315,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   timingButton: {
-    backgroundColor: '#63B3ED', // Light blue for button
+    backgroundColor: '#3182CE', // Light blue for button
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',

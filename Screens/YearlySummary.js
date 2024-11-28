@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     yearSelector: {
-        backgroundColor: '#2D3748',
+        backgroundColor: '#3182CE',
         padding: 10,
         borderRadius: 8,
         marginHorizontal: 16,

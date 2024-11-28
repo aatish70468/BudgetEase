@@ -75,6 +75,7 @@ export default function DailySummary() {
             mode="date"
             display="default"
             onChange={onDateChange}
+            style={{backgroundColor:"#3182CE"}}
           />
         )}
         <View style={styles.calculationContainer}>
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   dateSelector: {
-    backgroundColor: '#2D3748',
+    backgroundColor: '#3182CE',
     padding: 10,
     borderRadius: 8,
     marginHorizontal: 16,
