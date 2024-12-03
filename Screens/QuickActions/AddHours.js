@@ -2,41 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { auth, db } from './../FirebaseConfig';
+import { auth, db } from './../../FirebaseConfig';
 import { collection, setDoc, doc, getDocs, query, where, updateDoc, onSnapshot } from 'firebase/firestore'
 
-export default function AddPayRate() {
-  const [payType, setPayType] = useState('');
-  const [legalRate, setLegalRate] = useState('');
-  const [cashRate, setCashRate] = useState('');
+export default function AddHours() {
 
-  const payTypeOptions = [
-    { label: 'Hourly', value: 'hourly' },
-    { label: 'Salary', value: 'salary' },
-    { label: 'Commission', value: 'commission' },
-    { label: 'Piece Rate', value: 'pieceRate' },
-  ];
+  const [legalHours, setLegalHours] = useState('');
+  // const [cashRate, setCashRate] = useState('');
 
   useEffect(() => {
-    getCurrUserPayRate();
+    getCurrUserLegalHours();
   }, [])
 
-  const getCurrUserPayRate = async () => {
+  const getCurrUserLegalHours = async () => {
     const collectionRef = collection(db, 'users');
     const getUserDoc = query(collectionRef, where('id', '==', auth.currentUser.uid));
 
     onSnapshot(getUserDoc, (snapshot) => {
 
       const user = snapshot.docs.map(doc => {
-        setCashRate(doc.data().cashRate)
-        setPayType(doc.data().payType);
-        setLegalRate(doc.data().legalRate);
+        setLegalHours(doc.data().legalHours);
       })
     })
   }
 
   const handleAddPay = async () => {
-    if (!payType || !legalRate || !cashRate) {
+    if (!legalHours) {
       alert('Please fill out all fields.');
     } else {
 
@@ -51,13 +42,11 @@ export default function AddPayRate() {
         const user = userDoc.docs[0].data();
         console.log(`User: ${JSON.stringify(user)}`);
 
-        const addPayRateRef = doc(collectionRef, user.email)
-        await updateDoc(addPayRateRef, {
-          payType: payType,
-          legalRate: legalRate,
-          cashRate: cashRate,
+        const addLegalHoursRef = doc(collectionRef, user.email)
+        await updateDoc(addLegalHoursRef, {
+          legalHours: legalHours,
         });
-        alert('Pay Rate added successfully.');
+        alert('Legal Hours added successfully.');
       }
 
     }
@@ -70,51 +59,42 @@ export default function AddPayRate() {
         style={styles.keyboardAvoidingView}
       >
         <View style={styles.form}>
-          {/* Pay Type Picker */}
-          <View style={styles.inputContainer}>
-            <FontAwesome5 name="money-check-alt" size={20} color="#4285F4" style={styles.icon} />
-            <Picker
-              selectedValue={payType}
-              onValueChange={(itemValue) => setPayType(itemValue)}
-              style={styles.picker}
-              dropdownIconColor="#4285F4"
-            >
-              <Picker.Item label="Select Pay Rate Type" value="" color="#BBBBBB" />
-              {payTypeOptions.map(option => (
-                <Picker.Item key={option.value} label={option.label} value={option.value} />
-              ))}
-            </Picker>
-          </View>
 
-          {/* Legal Pay Rate Input */}
-          <View style={styles.inputContainer}>
-            <MaterialCommunityIcons name="bank" size={24} color="#4285F4" style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Legal Hours Pay-Rate"
-              placeholderTextColor="#BBBBBB"
-              value={legalRate}
-              onChangeText={setLegalRate}
-              keyboardType="numeric"
-            />
+          {/* Legal Hours Input */}
+          <View style={styles.outerInputContainer}>
+            <Text style={styles.label}>Legal Hours:</Text>
+            <View style={styles.inputContainer}>
+              <MaterialCommunityIcons name="bank" size={24} color="#4285F4" style={styles.icon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter legal hours you can do..."
+                placeholderTextColor="#BBBBBB"
+                value={legalHours}
+                onChangeText={setLegalHours}
+                keyboardType="numeric"
+              />
+            </View>
           </View>
 
           {/* Cash Pay Rate Input */}
-          <View style={styles.inputContainer}>
-            <FontAwesome5 name="hand-holding-usd" size={20} color="#4285F4" style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Cash Hours Pay-Rate"
-              placeholderTextColor="#BBBBBB"
-              value={cashRate}
-              onChangeText={setCashRate}
-              keyboardType="numeric"
-            />
-          </View>
+          {/* <View style={styles.outerInputContainer}>
+            <Text style={styles.label}>Cash Hours:</Text>
+            <View style={styles.inputContainer}>
+              <FontAwesome5 name="hand-holding-usd" size={20} color="#4285F4" style={styles.icon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter Cash Hours you can do..."
+                placeholderTextColor="#BBBBBB"
+                value={cashRate}
+                onChangeText={setCashRate}
+                keyboardType="numeric"
+              />
+            </View>
+          </View> */}
 
           {/* Add Pay Button */}
           <TouchableOpacity style={styles.button} onPress={handleAddPay}>
-            <Text style={styles.buttonText}>Add Pay Rate</Text>
+            <Text style={styles.buttonText}>Add Hours</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -141,6 +121,15 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  outerInputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF', //Light label text color
+    marginBottom: 8,
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -159,10 +148,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     color: '#FFFFFF', // Light text color
-  },
-  picker: {
-    flex: 1,
-    color: '#FFFFFF', // White text in picker
   },
   button: {
     backgroundColor: '#4285F4', // Accent color for button

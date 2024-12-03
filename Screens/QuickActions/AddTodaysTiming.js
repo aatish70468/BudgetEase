@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { auth, db, createBatch } from '../FirebaseConfig';
+import { auth, db, createBatch } from './../../FirebaseConfig';
 import { collection, setDoc, doc, getDoc, getDocs, query, where, updateDoc, onSnapshot } from 'firebase/firestore'
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -109,9 +109,13 @@ const AddTodaysTiming = () => {
     // Check if the user has a start date for week 
     const startDate = userData.startDate ? userData.startDate : date;
 
+    //Set the week number
+    const weekNumber = getWeekNumber(startDate, date);
+
     if (!userData.startDate) {
       await updateDoc(userRef, {
-        startDate: startDate
+        startDate: startDate,
+        weekNumber: weekNumber
       }).then(() => {
         console.log('Start date set to today');
       }).catch((error) => {
@@ -121,7 +125,6 @@ const AddTodaysTiming = () => {
 
 
     // Calculate the appropriate week number based on the start date
-    const weekNumber = getWeekNumber(startDate, date);
     const weeklyRef = doc(collection(db, 'weekly', email, String(weekNumber)), '1');
     const weeklyDoc = await getDoc(weeklyRef);
 
@@ -159,6 +162,7 @@ const AddTodaysTiming = () => {
         legalPay: legalPayCalculated,
         cashPay: cashPayCalculated,
         startDate: date,
+        endDate: date,
         startDateDayNum: new Date(date).getDay()
       });
     }

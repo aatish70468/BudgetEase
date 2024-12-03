@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, Text, View, Pressable, ScrollView, Image } from 'react-native';
 import { FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { auth, db, storage } from './../FirebaseConfig';
+import { auth, db, storage } from './../../FirebaseConfig';
 import { collection, addDoc, doc, onSnapshot, query, where, updateDoc, getDocs } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native'
 
@@ -10,7 +10,8 @@ const Home = ({ navigation }) => {
   const [weeklyIncome, setWeeklyIncome] = useState(0);
   const [monthlyIncome, setMonthlyIncome] = useState(0);
   const [userPayrate, setUserPayrate] = useState(0);
-  const [userTotalHours, setUserTotalHours] = useState(0);
+  const [userWeeklyTotalPay, setUserWeeklyTotalPay] = useState(0);
+  const [userMonthlyTotalPay, setUserMonthlyTotalPay] = useState(0);
 
   // Fetch Firestore Data
   useFocusEffect(
@@ -37,17 +38,16 @@ const Home = ({ navigation }) => {
   const getUserHours = async () => {
     const month = new Date().getMonth()+1;
     console.log("Current Month: ", month);
-    const collectionRef = doc(collection(db, 'monthly', auth.currentUser.email, String(month)), "1");
+    const monthlyCollectionRef = collection(db, 'monthly', auth.currentUser.email, String(month));
     let getHours = 0;
   
-    const getTotalHours = await getDocs(collectionRef);
+    const getTotalHours = await getDocs(monthlyCollectionRef);
     if (getTotalHours.docs.length > 0) {
       getTotalHours.forEach(doc => {
         const data = doc.data();
-        console.log("Worked Hours for the day: ", data.legalHours);  // Debugging Hours
-        getHours += data.legalHours;
+        console.log("Worked Hours for the day: ", data.legalPay + data.cashPay);
+        setUserMonthlyTotalPay(data.legalPay + data.cashPay);
       });
-      setUserTotalHours(getHours);
     } else {
       console.log("No hours found for this month");
     }
@@ -55,16 +55,16 @@ const Home = ({ navigation }) => {
 
   // Calculate income after payrate and hours are fetched
   useEffect(() => {
-    console.log("Payrate: ", userPayrate, "Total Hours: ", userTotalHours);  // Debugging effect
+    console.log("Payrate: ", userPayrate, "Total Hours: ", userWeeklyTotalPay);  // Debugging effect
   
-    if (userPayrate > 0 && userTotalHours > 0) {
-      const weeklyIncomeCalculated = userTotalHours * userPayrate; 
-      const monthlyIncomeCalculated = userTotalHours * userPayrate;
+    if (userPayrate > 0 && userWeeklyTotalPay > 0 && userMonthlyTotalPay > 0) {
+      const weeklyIncomeCalculated = userWeeklyTotalPay * userPayrate;
+      const monthlyIncomeCalculated = userMonthlyTotalPay * userPayrate;
   
       setWeeklyIncome(weeklyIncomeCalculated);
       setMonthlyIncome(monthlyIncomeCalculated);
     }
-  }, [userPayrate, userTotalHours]);
+  }, [userPayrate, userWeeklyTotalPay, userMonthlyTotalPay, userMonthlyTotalPay]);
 
   return (
     <ScrollView style={styles.container}>
@@ -75,11 +75,11 @@ const Home = ({ navigation }) => {
         <View style={styles.earningsRow}>
           <View style={styles.earningsItem}>
             <Text style={styles.earningsLabel}>This Week</Text>
-            <Text style={styles.earningsAmount}>${weeklyIncome.toFixed(2)}</Text>
+            <Text style={styles.earningsAmount}>${userWeeklyTotalPay.toFixed(2)}</Text>
           </View>
           <View style={styles.earningsItem}>
             <Text style={styles.earningsLabel}>This Month</Text>
-            <Text style={styles.earningsAmount}>${monthlyIncome.toFixed(2)}</Text>
+            <Text style={styles.earningsAmount}>${userMonthlyTotalPay.toFixed(2)}</Text>
           </View>
         </View>
       </View>
@@ -97,7 +97,6 @@ const Home = ({ navigation }) => {
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionGrid}>
           <Pressable style={styles.actionItem} onPress={() => navigation.navigate('AddPayRate')}>
-            {/* <FontAwesome5 name="money-bill-wave" size={24} color="#63B3ED" /> */}
             <Ionicons name="cash-outline" size={24} color="#63B3ED" />
             <Text style={styles.actionText}>Add PayRate</Text>
           </Pressable>
@@ -109,10 +108,6 @@ const Home = ({ navigation }) => {
             <Ionicons name="wallet-outline" size={24} color="#63B3ED" />
             <Text style={styles.actionText}>Set Budget</Text>
           </Pressable>
-          {/* <Pressable style={styles.actionItem} onPress={() => navigation.navigate('SetBudget')}>
-            <Ionicons name="notifications-outline" size={24} color="#63B3ED" />
-            <Text style={styles.actionText}>Notification</Text>
-          </Pressable> */}
           <Pressable style={styles.actionItem} onPress={() => navigation.navigate('ViewAll')}>
             <FontAwesome5 name="list-ul" size={24} color="#63B3ED" />
             <Text style={styles.actionText}>View All</Text>

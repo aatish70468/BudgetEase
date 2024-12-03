@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Mod
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { auth, db } from './../FirebaseConfig';
+import { auth, db } from './../../FirebaseConfig';
 
 export default function MonthlySummary() {
   const [legalHours, setLegalHours] = useState(0);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, FlatList } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import { db, auth } from './../FirebaseConfig'; // Import your Firestore setup
+import { db, auth } from './../../FirebaseConfig'; // Import your Firestore setup
 import { doc, setDoc, getDoc, collection, addDoc, query, getDocs, deleteDoc } from 'firebase/firestore';
 
 const SetBudget = () => {

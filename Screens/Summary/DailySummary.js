@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { doc,collection, query, where, getDocs } from 'firebase/firestore';
-import { auth, db } from './../FirebaseConfig'
+import { auth, db } from './../../FirebaseConfig'
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function DailySummary() {
@@ -104,15 +104,15 @@ export default function DailySummary() {
             </View>
             <View style={styles.calculationRow}>
               <Text style={styles.calculationLabel}>Legal Pay:</Text>
-              <Text style={styles.calculationValue}>$ {legalPay}</Text>
+              <Text style={styles.calculationValue}>$ {legalPay.toFixed(2)}</Text>
             </View>
             <View style={styles.calculationRow}>
               <Text style={styles.calculationLabel}>Cash Pay:</Text>
-              <Text style={styles.calculationValue}>$ {cashPay}</Text>
+              <Text style={styles.calculationValue}>$ {cashPay.toFixed(2)}</Text>
             </View>
             <View style={[styles.calculationRow, styles.totalRow]}>
               <Text style={styles.calculationLabel}>Total Pay:</Text>
-              <Text style={styles.calculationValue}>$ {legalPay + cashPay}</Text>
+              <Text style={styles.calculationValue}>$ {(legalPay + cashPay).toFixed(2)}</Text>
             </View>
           </View>
         </View>

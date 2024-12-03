@@ -95,21 +95,6 @@ const SignInScreen = ({ navigation }) => {
                 <Text style={styles.linkText}>Forgot Password?</Text>
             </TouchableOpacity>
 
-            {/* Divider */}
-            <View style={styles.divider}>
-                <View style={styles.line}></View>
-                <Text style={styles.orText}>OR</Text>
-                <View style={styles.line}></View>
-            </View>
-
-            {/* Improved Social Media Login */}
-            <View style={styles.socialButtons}>
-                <TouchableOpacity style={[styles.socialButton, styles.googleButton]}>
-                    <Image source={require('./../assets/google.png')} style={styles.socialIcon} />
-                    <Text style={styles.socialText}>Continue with Google</Text>
-                </TouchableOpacity>
-            </View>
-
             {/* Sign Up Link */}
             <TouchableOpacity onPress={() => btnSignUpPressed()}>
                 <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
