@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF' //White text color
   },
   button: {
-    backgroundColor: '#4F46E5', //Accent color for button
+    backgroundColor: '#3182CE', //Accent color for button
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',

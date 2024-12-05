@@ -7,8 +7,7 @@ import { useFocusEffect } from '@react-navigation/native'
 
 const Home = ({ navigation }) => {
 
-  const [weeklyIncome, setWeeklyIncome] = useState(0);
-  const [monthlyIncome, setMonthlyIncome] = useState(0);
+  const [weekNumber, setWeekNumber] = useState(0);
   const [userPayrate, setUserPayrate] = useState(0);
   const [userWeeklyTotalPay, setUserWeeklyTotalPay] = useState(0);
   const [userMonthlyTotalPay, setUserMonthlyTotalPay] = useState(0);
@@ -29,8 +28,8 @@ const Home = ({ navigation }) => {
     onSnapshot(getUserDoc, (snapshot) => {
       snapshot.docs.forEach(doc => {
         const data = doc.data();
-        console.log("User Payrate: ", data.legalRate);  // Debugging Payrate
         setUserPayrate(data.legalRate);
+        setWeekNumber(data.weekNumber);
       });
     });
   };
@@ -39,32 +38,28 @@ const Home = ({ navigation }) => {
     const month = new Date().getMonth()+1;
     console.log("Current Month: ", month);
     const monthlyCollectionRef = collection(db, 'monthly', auth.currentUser.email, String(month));
-    let getHours = 0;
+    const weeklyCollectionRef = collection(db, 'weekly', auth.currentUser.email, String(weekNumber));
   
-    const getTotalHours = await getDocs(monthlyCollectionRef);
-    if (getTotalHours.docs.length > 0) {
-      getTotalHours.forEach(doc => {
+    const getMonthlyTotalPay = await getDocs(monthlyCollectionRef);
+    if (getMonthlyTotalPay.docs.length > 0) {
+      getMonthlyTotalPay.forEach(doc => {
         const data = doc.data();
-        console.log("Worked Hours for the day: ", data.legalPay + data.cashPay);
         setUserMonthlyTotalPay(data.legalPay + data.cashPay);
       });
     } else {
       console.log("No hours found for this month");
     }
-  };
 
-  // Calculate income after payrate and hours are fetched
-  useEffect(() => {
-    console.log("Payrate: ", userPayrate, "Total Hours: ", userWeeklyTotalPay);  // Debugging effect
-  
-    if (userPayrate > 0 && userWeeklyTotalPay > 0 && userMonthlyTotalPay > 0) {
-      const weeklyIncomeCalculated = userWeeklyTotalPay * userPayrate;
-      const monthlyIncomeCalculated = userMonthlyTotalPay * userPayrate;
-  
-      setWeeklyIncome(weeklyIncomeCalculated);
-      setMonthlyIncome(monthlyIncomeCalculated);
+    const getWeeklyTotalPay = await getDocs(weeklyCollectionRef);
+    if (getWeeklyTotalPay.docs.length > 0) {
+      getWeeklyTotalPay.forEach(doc => {
+        const data = doc.data();
+        setUserWeeklyTotalPay(data.legalPay + data.cashPay);
+      });
+    } else {
+      console.log("No hours found for this week");
     }
-  }, [userPayrate, userWeeklyTotalPay, userMonthlyTotalPay, userMonthlyTotalPay]);
+  };
 
   return (
     <ScrollView style={styles.container}>

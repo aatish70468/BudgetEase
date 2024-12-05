@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { auth } from './FirebaseConfig';
 import { signOut } from 'firebase/auth';
 import SignIn from './Screens/SignIn';
@@ -41,7 +42,7 @@ export default function App() {
   // Display Logout button in the header
   const btnDisplayLogout = ({ navigation }) => (
     <Pressable style={styles.button} onPress={() => btnLogoutPressed({ navigation })}>
-      <Text style={styles.buttonText}>Logout</Text> 
+      <MaterialIcons name="power-settings-new" size={24} color="white" />
     </Pressable>
   );
 
@@ -177,7 +178,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   button: {
-    backgroundColor: '#3182CE', // Bright color for logout button
     padding: 10,
     borderRadius: 5,
     marginRight: 15,
