@@ -121,6 +121,14 @@ const AddTodaysTiming = () => {
       }).catch((error) => {
         console.error('Error updating start date:', error);
       });
+    } else {
+      await updateDoc(userRef, {
+        weekNumber: weekNumber
+      }).then(() => {
+        console.log('Week Updated');
+      }).catch((error) => {
+        console.error('Error updating week:', error);
+      });
     }
 
 

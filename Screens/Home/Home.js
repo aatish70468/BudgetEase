@@ -11,14 +11,29 @@ const Home = ({ navigation }) => {
   const [userPayrate, setUserPayrate] = useState(0);
   const [userWeeklyTotalPay, setUserWeeklyTotalPay] = useState(0);
   const [userMonthlyTotalPay, setUserMonthlyTotalPay] = useState(0);
+  const [payrateFetched, setPayrateFetched] = useState(false); // Flag to track payrate fetch completion
 
-  // Fetch Firestore Data
-  useFocusEffect(
+   // Fetch Firestore Data
+   useFocusEffect(
     useCallback(() => {
-      getUserPayrate();
-      getUserHours();
-    }, [])
-  )
+      getUserPayrate(); // First function
+    })
+  );
+
+  // Trigger getUserHours after getUserPayrate completes
+  useFocusEffect(() => {
+    if (payrateFetched) {
+      getUserHours(); // Second function
+    }
+  }, [payrateFetched]); // Dependency ensures this runs only after payrateFetched changes
+
+  // // Fetch Firestore Data
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     getUserPayrate();
+  //     getUserHours();
+  //   }, [])
+  // )
 
   // Fetch payrate from Firestore
   const getUserPayrate = async () => {
@@ -31,6 +46,7 @@ const Home = ({ navigation }) => {
         setUserPayrate(data.legalRate);
         setWeekNumber(data.weekNumber);
       });
+      setPayrateFetched(true); // Set the flag to true once the data is fetched
     });
   };
   
@@ -38,6 +54,7 @@ const Home = ({ navigation }) => {
     const month = new Date().getMonth()+1;
     console.log("Current Month: ", month);
     const monthlyCollectionRef = collection(db, 'monthly', auth.currentUser.email, String(month));
+    console.log("Current Week: ", weekNumber);
     const weeklyCollectionRef = collection(db, 'weekly', auth.currentUser.email, String(weekNumber));
   
     const getMonthlyTotalPay = await getDocs(monthlyCollectionRef);
@@ -51,6 +68,7 @@ const Home = ({ navigation }) => {
     }
 
     const getWeeklyTotalPay = await getDocs(weeklyCollectionRef);
+    let weekTotal = 0
     if (getWeeklyTotalPay.docs.length > 0) {
       getWeeklyTotalPay.forEach(doc => {
         const data = doc.data();
