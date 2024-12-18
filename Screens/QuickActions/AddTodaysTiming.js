@@ -31,16 +31,25 @@ const AddTodaysTiming = () => {
   }
 
   function getWeekNumber(startDate, inputDate) {
-    const start = isTimestamp(startDate) ? new Date(startDate.seconds * 1000) : new Date(startDate);
-    const input = new Date(inputDate);
+    // const start = isTimestamp(startDate) ? new Date(startDate.seconds * 1000) : new Date(startDate);
+    // const input = new Date(inputDate);
 
-    // Calculate the difference in time
-    const timeDifference = input.getTime() - start.getTime();
-    // Calculate the difference in days
-    const dayDifference = timeDifference / (1000 * 3600 * 24);
+    // // Calculate the difference in time
+    // const timeDifference = input.getTime() - start.getTime();
+    // // Calculate the difference in days
+    // const dayDifference = timeDifference / (1000 * 3600 * 24);
 
-    // Calculate the week number based on day difference (Each week is 7 days)
-    const weekNumber = Math.floor(dayDifference / 7) + 1;
+    // // Calculate the week number based on day difference (Each week is 7 days)
+    // const weekNumber = Math.floor(dayDifference / 7) + 1;
+
+    let weekNumber = new Date().getDay()
+
+    if (weekNumber === 0) {
+      weekNumber = 1
+    } else {
+
+    }
+
     console.log(weekNumber)
     return weekNumber;
   }
@@ -110,7 +119,22 @@ const AddTodaysTiming = () => {
     const startDate = userData.startDate ? userData.startDate : date;
 
     //Set the week number
-    const weekNumber = getWeekNumber(startDate, date);
+    // const weekNumber = getWeekNumber(startDate, date);
+    console.log(`user Week Number: ${userData.weekNumber}`);
+
+    let weekNumber = new Date(date).getDay()
+    console.log('Week Number: ', weekNumber)
+
+    if (userData.weekNumber === undefined) {
+      weekNumber = 0
+    } else {
+      if (weekNumber === 0) {
+        weekNumber = userData.weekNumber + 1
+      } else {
+        weekNumber = userData.weekNumber
+      }
+    }
+
 
     if (!userData.startDate) {
       await updateDoc(userRef, {
@@ -145,7 +169,7 @@ const AddTodaysTiming = () => {
     const legalPayCalculated = legalHours * userData.legalRate;
     const cashPayCalculated = cashHours * userData.cashRate;
 
-    const dailyData = { date: formatDate(date ), totalHours, legalHours, cashHours, legalPay: legalPayCalculated, cashPay: cashPayCalculated, monthNumber: monthNumber };
+    const dailyData = { date: formatDate(date), totalHours, legalHours, cashHours, legalPay: legalPayCalculated, cashPay: cashPayCalculated, monthNumber: monthNumber };
     // Firestore batch for atomic writes
     const batch = createBatch();
 
@@ -219,7 +243,7 @@ const AddTodaysTiming = () => {
     const pastMonthDate = monthNumber - 2;
     console.log(`Month Number: ${monthNumber}`);
     console.log(`Past Month Number: ${pastMonthDate}`);
-    
+
     const pastDailyCollectionRef1 = collection(db, 'daily', email, String(pastMonthDate));
     const pastDailyRef = query(pastDailyCollectionRef1, where('monthNumber', '==', pastMonthDate))
     const pastDailyDoc2 = await getDocs(pastDailyRef)
@@ -231,7 +255,7 @@ const AddTodaysTiming = () => {
     }
 
     //Step 9: Delete past 8th week data from Weekly record
-    const pastWeekNumber = weekNumber - 7;
+    const pastWeekNumber = userData.weekNumber - 7;
     console.log(`Past Week Number: ${pastWeekNumber}`);
     const pastWeekRef = doc(collection(db, 'weekly', email, String(pastWeekNumber)), '1');
     const pastWeekDoc = await getDoc(pastWeekRef)
